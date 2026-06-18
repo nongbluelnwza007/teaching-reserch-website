@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>KTCM Computer Maintenance</title>
     <link rel="stylesheet" href="style.css">
     <script>
@@ -172,6 +172,11 @@
         </nav>
 
         <main id="main-content">
+            <div class="zoom-controls" id="zoomControls">
+                <button class="zoom-btn" id="zoomOut" onclick="changeZoom(-1)" title="ลดขนาดตัวอักษร">A−</button>
+                <span class="zoom-level" id="zoomLevel">100%</span>
+                <button class="zoom-btn" id="zoomIn" onclick="changeZoom(1)" title="เพิ่มขนาดตัวอักษร">A+</button>
+            </div>
             <div class="content-inner" id="page-content"></div>
             <footer class="footer-nav">
                 <button class="nav-btn" onclick="changePage(-1)">ย้อนกลับ</button>
@@ -190,6 +195,35 @@
         document.getElementById("sidebar").classList.remove("show");
         this.classList.remove("show");
     });
+
+    // ── Zoom Controls ──
+    const ZOOM_STEPS = [70, 80, 90, 100, 110, 125, 140, 160, 180, 200];
+    let zoomIndex = ZOOM_STEPS.indexOf(100);
+
+    function applyZoom() {
+        const pct = ZOOM_STEPS[zoomIndex];
+        // ใช้ CSS zoom บน .content-inner — ค่าเป็นทศนิยม (0.7 ถึง 2.0)
+        document.documentElement.style.setProperty('--content-zoom', pct / 100);
+        const levelEl = document.getElementById('zoomLevel');
+        const outBtn  = document.getElementById('zoomOut');
+        const inBtn   = document.getElementById('zoomIn');
+        if (levelEl) levelEl.textContent = pct + '%';
+        if (outBtn)  outBtn.disabled = zoomIndex === 0;
+        if (inBtn)   inBtn.disabled  = zoomIndex === ZOOM_STEPS.length - 1;
+        localStorage.setItem('contentZoom', zoomIndex);
+    }
+
+    function changeZoom(dir) {
+        zoomIndex = Math.max(0, Math.min(ZOOM_STEPS.length - 1, zoomIndex + dir));
+        applyZoom();
+    }
+
+    // คืนค่าซูมที่เคยตั้งไว้ทันทีก่อนที่ content จะ render
+    (function() {
+        const saved = localStorage.getItem('contentZoom');
+        if (saved !== null) zoomIndex = parseInt(saved, 10);
+        applyZoom();
+    })();
     </script>
 
     <script src="script.js"></script>

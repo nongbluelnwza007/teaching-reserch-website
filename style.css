@@ -394,6 +394,7 @@ html, body {
     flex: 1;
     overflow-y: auto;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    zoom: var(--content-zoom, 1);
 }
 
 .content-inner::-webkit-scrollbar {
@@ -544,6 +545,70 @@ html, body {
 /* ==========================================================================
    10. MOBILE RESPONSIVE
    ========================================================================== */
+
+/* ── Zoom Controls ── */
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 6px 20px 0 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* แสดงปุ่ม zoom เฉพาะบนมือถือ */
+@media (hover: none) and (pointer: coarse) {
+    .zoom-controls { opacity: 1; pointer-events: auto; }
+}
+
+/* หรือแสดงเมื่อจอแคบกว่า 768px */
+@media screen and (max-width: 768px) {
+    .zoom-controls { opacity: 1 !important; pointer-events: auto !important; }
+}
+
+.zoom-btn {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    color: #a5b4fc;
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    padding: 5px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1.4;
+    letter-spacing: 0.03em;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.zoom-btn:hover:not(:disabled) {
+    background: rgba(99, 102, 241, 0.3);
+    border-color: rgba(99, 102, 241, 0.7);
+    color: #fff;
+    transform: scale(1.05);
+}
+
+.zoom-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.zoom-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.zoom-level {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748b;
+    min-width: 38px;
+    text-align: center;
+    letter-spacing: 0.04em;
+}
+
 .mobile-menu-btn {
     display: none;
     position: fixed;
@@ -628,6 +693,21 @@ html, body {
     /* --- ส่วนแก้โปรไฟล์: ปุ่มเท่ากันและฟอนต์เหมือนกันเป๊ะ --- */
     .user-profile {
         margin-top: auto !important;
+    }
+
+    /* zoom controls บนมือถือ */
+    .zoom-controls {
+        padding: 8px 16px 0 16px !important;
+        justify-content: center !important;
+    }
+    .zoom-btn {
+        font-size: 1rem !important;
+        padding: 7px 18px !important;
+        min-width: 52px !important;
+    }
+    .zoom-level {
+        font-size: 0.85rem !important;
+        min-width: 44px !important;
     }
 }
 
@@ -866,4 +946,4 @@ html, body {
 .content-inner .callout-box.box-info h3 {
     color: #a5b4fc;
 }
-
+
