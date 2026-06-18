@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมแบบฝึกหัด หน่วยที่ 5 - KTCM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; font-family: 'Sarabun', sans-serif; background: #090d16; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #38bdf8; }
+        .game-container { background: #0f172a; padding: 35px; border-radius: 25px; width: 850px; border: 4px solid #0284c7; box-shadow: 0 0 40px rgba(2,132,199,0.3); }
+        .game-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1e293b; padding-bottom: 12px; margin-bottom: 25px; }
+        
+        .terminal-screen { background: #020617; border: 2px solid #1e293b; border-radius: 15px; padding: 25px; min-height: 130px; font-family: monospace; font-size: 18px; color: #4ade80; line-height: 1.6; margin-bottom: 25px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
+        .options-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+        .terminal-btn { background: #1e293b; border: 2px solid #334155; padding: 15px 20px; border-radius: 12px; color: #f8fafc; font-size: 16px; font-weight: bold; text-align: left; cursor: pointer; transition: 0.2s; font-family: inherit; }
+        .terminal-btn:hover { border-color: #4ade80; background: #022c22; color: #4ade80; }
+        .terminal-btn.selected { background: #047857; color: white; border-color: #34d399; }
+
+        .game-btn { padding: 12px 28px; border: none; border-radius: 10px; font-weight: 700; font-size: 18px; font-family: inherit; cursor: pointer; transition: 0.3s; }
+        .btn-cancel-main { background: #475569; color: white; }
+        .btn-submit-main { background: #059669; color: white; }
+
+        /* 📍 อัปเกรดหน้าตาชุดบล็อกโมดอลควบคุมปุ่มโค้งมนมนสะดุดตา */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .modal-content { background: white; padding: 40px; border-radius: 30px; text-align: center; width: 340px; box-shadow: 0 20px 25px rgba(0,0,0,0.2); color: #0f172a; }
+        .modal-btn-group { display: flex; gap: 12px; margin-top: 25px; justify-content: center; width: 100%; }
+        .modal-btn-confirm { flex: 1; padding: 12px; background: #eab308; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; font-family: inherit; cursor: pointer; transition: 0.2s; }
+        .modal-btn-confirm:hover { background: #ca8a04; }
+        .modal-btn-cancel { flex: 1; padding: 12px; background: #64748b; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; font-family: inherit; cursor: pointer; transition: 0.2s; }
+        .modal-btn-cancel:hover { background: #475569; }
+        .modal-btn-single { width: 100%; padding: 12px; background: #3b82f6; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; font-family: inherit; cursor: pointer; transition: 0.2s; }
+        .modal-btn-single:hover { background: #2563eb; }
+
+                /* สำหรับหน้าจอมือถือที่มีความกว้างไม่เกิน 768px */
+        @media only screen and (max-width: 768px) {
+            .game-container {
+                width: 95% !important;
+                padding: 20px 15px !important;
+                margin: 10px auto !important;
+                box-sizing: border-box !important;
+            }
+            .card-grid, .drop-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+            .item-pool {
+                padding: 10px !important;
+                gap: 8px !important;
+            }
+            .drag-item {
+                font-size: 14px !important;
+                padding: 8px 12px !important;
+            }
+            .drop-zone {
+                min-height: 120px !important;
+                padding: 12px !important;
+            }
+            .drop-title {
+                font-size: 16px !important;
+            }
+            .memory-card {
+                height: 80px !important;
+                font-size: 13px !important;
+                padding: 5px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="game-header">
+            <h2 style="margin:0; font-size:24px; color:#f8fafc;">⌨️ ระบบกู้คืนแก้สถานการณ์จำลองเฟิร์มแวร์ BIOS/UEFI</h2>
+            <span style="font-weight:700; font-size:22px; color:#4ade80;" id="stepTrack">คดีข้อที่ 1/2</span>
+        </div>
+        
+        <div class="terminal-screen" id="terminalOutput"></div>
+        <div class="options-list" id="optionsContainer"></div>
+
+        <div style="display:flex; justify-content:space-between;">
+            <button class="game-btn btn-cancel-main" onclick="cancelGame()">ยกเลิกคดี</button>
+            <button id="submitGameBtn" class="game-btn btn-submit-main" onclick="nextStage()" disabled>รันชุดคำสั่งตั้งค่าแก้ไข</button>
+        </div>
+    </div>
+
+    <div id="game-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span id="modal-icon" style="font-size:70px; display:block; margin-bottom:15px;">❓</span>
+            <h2 id="modal-title" style="margin:0 0 10px 0; font-size:24px; font-weight:700;">แจ้งเตือน</h2>
+            <p id="modal-text" style="font-size:18px; color:#475569; margin-bottom:25px; line-height:1.6;"></p>
+            <div class="modal-btn-group" id="modalBtnGroup"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyANpBI1AVwKW6X2I9EPxmflU81RpumrXwo", authDomain: "teach-af247.firebaseapp.com", projectId: "teach-af247", storageBucket: "teach-af247.firebasestorage.app", messagingSenderId: "540555116590", appId: "1:540555116590:web:23e79da0c82e8c865edfbf" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const loginUser = localStorage.getItem('userName');
+
+        const currentUnit = 5;
+        let activeStage = 0;
+        let gameScore = 0;
+        let currentChoice = null;
+
+        const stageCases = [
+            {
+                text: "LOG ERROR: คอมพิวเตอร์ของลูกค้าเปิดใช้งานเข้าสู่ระบบ Windows ได้ตามปกติ แต่เมื่อเปิดเข้าหน้าเว็บเบราว์เซอร์ ระบบจะส่งการแจ้งเตือนล็อกพอร์ตฟ้องว่าโปรโตคอลความปลอดภัย 'HTTPS ไม่ปลอดภัย' และทำให้ระบบไม่สามารถต่ออินเทอร์เน็ตได้ ช่างคอมพิวเตอร์ควรตั้งค่าแก้จุดใดในหน้า BIOS?",
+                opts: ["> MENU: ตั้งค่าปรับสปีดพัดลมระบายความร้อน Fan Control Core", "> MENU: ปรับแก้ไขหมวดหมู่ค่าวันเวลา Date & Time ในหน้าหลักให้เป็นปัจจุบันตรงกันสากล", "> MENU: สั่งเปิดใช้งานฟังก์ชันแรมสูงสุดผ่านทางโปรไฟล์ XMP/DOCP"],
+                ans: 1
+            },
+            {
+                text: "LOG ERROR: ช่างคอมพิวเตอร์กำลังเตรียมการลงระบบปฏิบัติการใหม่เอี่ยมผ่าน USB Flash Drive บูตล้างเครื่อง แต่เมื่อเปิดเครื่องระบบวนเด้งสุ่มกลับไปเปิดเข้าหน้า Windows เดิมเก่าตลอดเวลา โดยไม่สนใจแฟลชไดรฟ์ที่เสียบเชื่อมต่ออยู่ ช่างคอมพิวเตอร์ต้องจัดการปรับ Config ส่วนใด?",
+                opts: ["> CONFIG: เข้าไปตั้งค่าจัดลำดับตัวนำทางในส่วนของเมนู Boot Priority เลือก USB ขึ้นก่อนอันดับแรก", "> CONFIG: สั่งเปิดใช้โหมดระบบความปลอดภัยระดับสถาปัตยกรรม Secure Boot ดักจับลายเซ็น", "> CONFIG: เข้าใช้งานเมนูระบบ Flash Utility / Q-Flash รันข้อมูลไฟล์"],
+                ans: 0
+            }
+        ];
+
+        function loadCase() {
+            currentChoice = null;
+            document.getElementById('submitGameBtn').disabled = true;
+            document.getElementById('stepTrack').innerText = `คดีจำลองข้อที่ ${activeStage + 1}/2`;
+            const activeCase = stageCases[activeStage];
+            document.getElementById('terminalOutput').innerText = activeCase.text;
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+            
+            activeCase.opts.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'terminal-btn';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    document.querySelectorAll('.terminal-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    currentChoice = idx;
+                    document.getElementById('submitGameBtn').disabled = false;
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        async function nextStage() {
+            if (currentChoice === stageCases[activeStage].ans) { gameScore += 50; }
+            if (activeStage < 1) {
+                activeStage++;
+                loadCase();
+            } else { await saveScore(); }
+        }
+
+        async function saveScore() {
+            const finalPercent = Math.round(gameScore);
+            try {
+                const userDocRef = db.collection("users").doc(loginUser);
+                const docSnap = await userDocRef.get();
+                let currentScores = docSnap.exists && docSnap.data().scores ? docSnap.data().scores : {};
+                if (!currentScores["unit" + currentUnit]) currentScores["unit" + currentUnit] = { pre: 0, exercise: 0, post: 0 };
+                currentScores["unit" + currentUnit].exercise = finalPercent;
+                await userDocRef.update({ scores: currentScores });
+
+                showModal("🎉", "ถอดรหัสเสร็จสิ้น!", `แก้ไขปัญหาฟังก์ชันเฟิร์มแวร์เรียบร้อย<br>ได้คะแนนความคืบหน้า: <b>${finalPercent}%</b>`, () => { window.location.href = '../index.html'; }, true);
+            } catch(e) { window.location.href = '../index.html'; }
+        }
+
+        window.cancelGame = () => {
+            showModal("❓", "ต้องการยกเลิกคดีใช่ไหม?", "หากกดยืนยันปิดหน้าต่าง ผลการกู้คืนแก้บั๊กบทเรียนนี้จะไม่ถูกบันทึกนะ !", () => { window.location.href = '../index.html'; });
+        };
+
+        function showModal(icon, title, text, action, isSingleBtn = false) {
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerHTML = text;
+            const btnGroup = document.getElementById('modalBtnGroup');
+            if(isSingleBtn) {
+                btnGroup.innerHTML = `<button class="modal-btn-single" style="background:#10b981;">ตกลงกลับหน้าหลัก</button>`;
+                btnGroup.firstChild.onclick = action;
+            } else {
+                btnGroup.innerHTML = `
+                    <button class="modal-btn-confirm" id="modalConfirm">ยืนยันยกเลิก</button>
+                    <button class="modal-btn-cancel" onclick="document.getElementById('game-modal').style.display='none'">เล่นต่อ</button>
+                `;
+                document.getElementById('modalConfirm').onclick = action;
+            }
+            document.getElementById('game-modal').style.display = 'flex';
+        }
+        loadCase();
+    </script>
+</body>
+</html>

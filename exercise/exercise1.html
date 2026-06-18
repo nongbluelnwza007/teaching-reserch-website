@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมแบบฝึกหัด หน่วยที่ 1 (Full Edition) - KTCM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; font-family: 'Sarabun', sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #fff; }
+        .game-container { background: white; padding: 35px; border-radius: 25px; width: 900px; border: 4px solid #3b82f6; color: #0f172a; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .game-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px; }
+        
+        .item-pool { background: #f8fafc; border: 3px dashed #cbd5e1; padding: 20px; border-radius: 20px; min-height: 150px; display: flex; gap: 12px; justify-content: center; align-items: center; margin-bottom: 25px; flex-wrap: wrap; }
+        .drag-item { background: #3b82f6; color: white; padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: grab; box-shadow: 0 4px 6px rgba(0,0,0,0.15); transition: 0.2s; }
+        .drag-item:active { cursor: grabbing; transform: scale(0.95); }
+        
+        .drop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .drop-zone { background: #f1f5f9; border: 3px solid #cbd5e1; border-radius: 20px; padding: 20px; min-height: 180px; transition: 0.3s; display: flex; flex-direction: column; gap: 10px; }
+        .drop-zone.hovered { border-color: #3b82f6; background: #eff6ff; transform: scale(1.02); }
+        .drop-title { margin: 0 0 10px 0; font-size: 18px; font-weight: 700; color: #1e293b; text-align: center; border-bottom: 3px solid #cbd5e1; padding-bottom: 6px; }
+        
+        .game-btn { padding: 12px 28px; border: none; border-radius: 10px; font-weight: 700; font-size: 18px; font-family: inherit; cursor: pointer; transition: 0.3s; }
+        .btn-cancel-main { background: #64748b; color: white; }
+        .btn-cancel-main:hover { background: #475569; }
+        .btn-submit-main { background: #10b981; color: white; }
+        .btn-submit-main:hover { background: #059669; }
+        .btn-submit-main:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+
+        /* 📍 ยกเครื่องหน้าตาดีไซน์โมดอลโค้งมนสไตล์หรูหราแบบหน้าแบบทดสอบ */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .modal-content { background: white; padding: 40px; border-radius: 30px; text-align: center; width: 340px; box-shadow: 0 20px 25px rgba(0,0,0,0.2); color: #0f172a; }
+        
+        .modal-btn-group { display: flex; gap: 12px; margin-top: 25px; justify-content: center; width: 100%; }
+        .modal-btn-confirm { flex: 1; padding: 12px; background: #eab308; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; font-family: inherit; cursor: pointer; transition: 0.2s; }
+        .modal-btn-confirm:hover { background: #ca8a04; }
+        .modal-btn-cancel { flex: 1; padding: 12px; background: #64748b; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; font-family: inherit; cursor: pointer; transition: 0.2s; }
+        .modal-btn-cancel:hover { background: #475569; }
+        .modal-btn-single { width: 100%; padding: 12px; background: #3b82f6; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; font-family: inherit; cursor: pointer; transition: 0.2s; }
+        .modal-btn-single:hover { background: #2563eb; }
+
+                /* สำหรับหน้าจอมือถือที่มีความกว้างไม่เกิน 768px */
+        @media only screen and (max-width: 768px) {
+            .game-container {
+                width: 95% !important;
+                padding: 20px 15px !important;
+                margin: 10px auto !important;
+                box-sizing: border-box !important;
+            }
+            .card-grid, .drop-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+            .item-pool {
+                padding: 10px !important;
+                gap: 8px !important;
+            }
+            .drag-item {
+                font-size: 14px !important;
+                padding: 8px 12px !important;
+            }
+            .drop-zone {
+                min-height: 120px !important;
+                padding: 12px !important;
+            }
+            .drop-title {
+                font-size: 16px !important;
+            }
+            .memory-card {
+                height: 80px !important;
+                font-size: 13px !important;
+                padding: 5px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="game-header">
+            <h2 style="margin:0; font-size:24px; color:#0f172a;">🎮 เกมมหกรรมคัดแยกสถานะอุปกรณ์คอมพิวเตอร์ (IPOS Engine)</h2>
+            <span style="font-weight:700; font-size:22px; color:#3b82f6;" id="scoreTrack">คะแนน: 0</span>
+        </div>
+        
+        <p style="color:#475569; font-weight:700; font-size:16px; margin-bottom:15px;">จงลากชิ้นส่วนและอุปกรณ์เฉพาะทางทั้ง 20 ชิ้น ไปจัดหมวดหมู่ตามหลักสถาปัตยกรรมคอมพิวเตอร์ให้ถูกต้อง :</p>
+        <div class="item-pool" id="itemPool"></div>
+        
+        <div class="drop-grid">
+            <div class="drop-zone" data-category="Input"><h4 class="drop-title">📥 การรับข้อมูล (Input)</h4></div>
+            <div class="drop-zone" data-category="Processing"><h4 class="drop-title">⚙️ การประมวลผล (Processing)</h4></div>
+            <div class="drop-zone" data-category="Output"><h4 class="drop-title">🖥️ การแสดงผล (Output)</h4></div>
+            <div class="drop-zone" data-category="Storage"><h4 class="drop-title">💾 การจัดเก็บข้อมูล (Storage)</h4></div>
+        </div>
+
+        <div style="margin-top:30px; display:flex; justify-content:space-between;">
+            <button class="game-btn btn-cancel-main" onclick="cancelGame()">ยกเลิกเกม</button>
+            <button id="submitGameBtn" class="game-btn btn-submit-main" onclick="finishGame()" disabled>ส่งผลแบบฝึกหัด (0/20)</button>
+        </div>
+    </div>
+
+    <div id="game-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span id="modal-icon" style="font-size:70px; display:block; margin-bottom:15px;">❓</span>
+            <h2 id="modal-title" style="margin:0 0 10px 0; font-size:24px; font-weight:700;">แจ้งเตือน</h2>
+            <p id="modal-text" style="font-size:18px; color:#475569; margin-bottom:25px; line-height:1.6;"></p>
+            <div class="modal-btn-group" id="modalBtnGroup"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyANpBI1AVwKW6X2I9EPxmflU81RpumrXwo", authDomain: "teach-af247.firebaseapp.com", projectId: "teach-af247", storageBucket: "teach-af247.firebasestorage.app", messagingSenderId: "540555116590", appId: "1:540555116590:web:23e79da0c82e8c865edfbf" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const loginUser = localStorage.getItem('userName');
+
+        if (!loginUser) { window.location.href = '../login.html'; }
+
+        const currentUnit = 1;
+        let gameScore = 0;
+        let totalItemsPlaced = 0;
+
+        const gameItems = [
+            { name: "เมาส์ไร้สาย (Mouse)", cat: "Input" }, { name: "แป้นพิมพ์แป้นกล (Keyboard)", cat: "Input" },
+            { name: "เครื่องสแกนบาร์โค้ด", cat: "Input" }, { name: "ไมโครโฟนคอนเดนเซอร์", cat: "Input" }, { name: "เซนเซอร์วัดค่า TDS น้ำ", cat: "Input" },
+            { name: "หน่วยประมวลผลกลาง CPU", cat: "Processing" }, { name: "การ์ดเร่งความเร็ว GPU", cat: "Processing" },
+            { name: "ชิปเซ็ตบอร์ด Northbridge", cat: "Processing" }, { name: "แผงวงจรคุมไฟ VRM", cat: "Processing" }, { name: "ชิปประมวลผลเสียง Audio DSP", cat: "Processing" },
+            { name: "หน้าจอแสดงผล OLED", cat: "Output" }, { name: "ลำโพงสเตอริโอ (Speaker)", cat: "Output" },
+            { name: "เครื่องพิมพ์เลเซอร์ (Printer)", cat: "Output" }, { name: "การ์ด Capture บันทึกภาพ", cat: "Output" }, { name: "แว่นตา VR Display", cat: "Output" },
+            { name: "ฮาร์ดดิสก์จานหมุน (HDD)", cat: "Storage" }, { name: "หน่วยความจำ SSD NVMe M.2", cat: "Storage" },
+            { name: "การ์ดหน่วยความจำ MicroSD", cat: "Storage" }, { name: "ชิปความจำพื้นฐาน ROM BIOS", cat: "Storage" }, { name: "แฟลชไดรฟ์ (USB Drive)", cat: "Storage" }
+        ];
+
+        function initGame() {
+            const pool = document.getElementById('itemPool');
+            const shuffled = gameItems.sort(() => Math.random() - 0.5);
+            
+            shuffled.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'drag-item';
+                div.id = `drag-${index}`;
+                div.innerText = item.name;
+                div.draggable = true;
+                div.setAttribute('data-target', item.cat);
+                div.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', e.target.id); });
+                pool.appendChild(div);
+            });
+
+            const zones = document.querySelectorAll('.drop-zone');
+            zones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => e.preventDefault());
+                zone.addEventListener('dragenter', (e) => zone.classList.add('hovered'));
+                zone.addEventListener('dragleave', (e) => zone.classList.remove('hovered'));
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('hovered');
+                    const id = e.dataTransfer.getData('text/plain');
+                    const draggedElement = document.getElementById(id);
+                    if(!draggedElement) return;
+
+                    const targetCat = draggedElement.getAttribute('data-target');
+                    const currentZoneCat = zone.getAttribute('data-category');
+
+                    if(targetCat === currentZoneCat) {
+                        gameScore += 5; 
+                        document.getElementById('scoreTrack').innerText = `คะแนน: ${Math.round(gameScore)}`;
+                    }
+
+                    draggedElement.draggable = false;
+                    draggedElement.style.background = "#94a3b8"; 
+                    draggedElement.style.boxShadow = "none";
+                    draggedElement.style.cursor = "default";
+                    zone.appendChild(draggedElement);
+                    totalItemsPlaced++;
+                    
+                    const submitBtn = document.getElementById('submitGameBtn');
+                    submitBtn.innerText = `ส่งผลแบบฝึกหัด (${totalItemsPlaced}/20)`;
+                    if(totalItemsPlaced === gameItems.length) { submitBtn.disabled = false; }
+                });
+            });
+        }
+
+        async function finishGame() {
+            const finalPercent = Math.round(gameScore);
+            try {
+                const userDocRef = db.collection("users").doc(loginUser);
+                const docSnap = await userDocRef.get();
+                let currentScores = docSnap.exists && docSnap.data().scores ? docSnap.data().scores : {};
+                if (!currentScores["unit" + currentUnit]) currentScores["unit" + currentUnit] = { pre: 0, exercise: 0, post: 0 };
+                currentScores["unit" + currentUnit].exercise = finalPercent;
+                await userDocRef.update({ scores: currentScores });
+
+                showModal("🎉", "บันทึกข้อมูลเสร็จสิ้น!", `เคลียร์เกมคัดแยกอุปกรณ์เรียบร้อย<br>ได้คะแนนสะสม: <b>${finalPercent}%</b>`, () => {
+                    window.location.href = '../index.html';
+                }, true);
+            } catch(e) { window.location.href = '../index.html'; }
+        }
+
+        window.cancelGame = () => {
+            showModal("❓", "ต้องการยกเลิกใช่ไหม?", "หากกดยืนยันออกจากเกมแบบฝึกหัด แต้มความคืบหน้าของบทเรียนนี้จะไม่ถูกบันทึกลงฐานข้อมูล !", () => {
+                window.location.href = '../index.html';
+            });
+        };
+
+        function showModal(icon, title, text, action, isSingleBtn = false) {
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerHTML = text;
+            const btnGroup = document.getElementById('modalBtnGroup');
+
+            if(isSingleBtn) {
+                btnGroup.innerHTML = `<button class="modal-btn-single" style="background:#10b981;">ตกลงกลับหน้าหลัก</button>`;
+                btnGroup.firstChild.onclick = action;
+            } else {
+                btnGroup.innerHTML = `
+                    <button class="modal-btn-confirm" id="modalConfirm">ยืนยันยกเลิก</button>
+                    <button class="modal-btn-cancel" onclick="document.getElementById('game-modal').style.display='none'">เล่นต่อ</button>
+                `;
+                document.getElementById('modalConfirm').onclick = action;
+            }
+            document.getElementById('game-modal').style.display = 'flex';
+        }
+
+        initGame();
+    </script>
+</body>
+</html>

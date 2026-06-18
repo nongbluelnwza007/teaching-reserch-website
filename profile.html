@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แก้ไขข้อมูลส่วนตัว</title>
+    <link rel="stylesheet" href="profile.css">
+    <script>
+        // 1. ตรวจสอบสถานะล็อกอินปัจจุบันในระบบ
+        if (!sessionStorage.getItem('isLoggedIn') || !localStorage.getItem('userName')) {
+            sessionStorage.clear();
+            localStorage.removeItem('userName');
+            window.location.replace('login.html'); // เตะกลับหน้าแรกและล้างประวัติการเข้าชมทันที
+        }
+
+        // 2. ป้องกันการกดปุ่ม ย้อนกลับ-ถัดไป (Back-Forward Cache) ของเบราว์เซอร์เพื่อแอบข้ามหน้า
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload(); // บังคับรีเฟรชหน้าจอเพื่อตรวจสอบสิทธิ์ใหม่
+            }
+        });
+    </script>
+</head>
+<body>
+
+<div class="card">
+    <div class="left-side">
+        <!-- Personal Information Section -->
+        <div class="section-group" style="padding-top: 0; overflow: hidden; position: relative;">
+            <div class="cover-container bg-default" id="profileCover">
+                <button type="button" class="cover-upload-btn" onclick="document.getElementById('bgFileInput').click()">📷 เปลี่ยนรูปหน้าปก</button>
+                <button type="button" id="btnRemoveBg" class="cover-remove-btn" onclick="removeCustomBg()" style="display:none;">🗑️ ลบหน้าปก</button>
+            </div>
+            <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
+            <script>
+                (function() {
+                    const savedTheme = localStorage.getItem('bgTheme');
+                    const savedBgImage = localStorage.getItem('bgImage');
+                    if (savedTheme) {
+                        const cover = document.getElementById('profileCover');
+                        if (cover) {
+                            cover.className = 'cover-container ' + savedTheme;
+                            if (savedTheme === 'bg-custom' && savedBgImage) {
+                                cover.style.backgroundImage = 'url(' + savedBgImage + ')';
+                            }
+                        }
+                    }
+                })();
+            </script>
+
+            <div class="profile-info-with-cover">
+                <div class="img-container">
+                    <div class="img-wrapper"><img id="preview" src="https://ui-avatars.com/api/?name=User" alt="Profile"></div>
+                    <label for="fileInput" class="upload-btn">📷</label>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" style="display:none;">
+                
+                <div class="input-group">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="nickName" placeholder="ชื่อเล่น">
+                </div>
+                <button class="btn-save" onclick="saveProfile()">บันทึกโปรไฟล์</button>
+            </div>
+        </div>
+        
+        <!-- Background Theme Section -->
+        <div class="section-group">
+            <h2>ธีมหน้าปกโปรไฟล์</h2>
+            <div class="theme-options-grid">
+                <button type="button" class="theme-btn" data-theme="bg-default" onclick="selectTheme('bg-default')">
+                    <span class="theme-preview bg-default-preview"></span>
+                    <span class="theme-name">ดีฟอลต์</span>
+                </button>
+                <button type="button" class="theme-btn" data-theme="bg-void" onclick="selectTheme('bg-void')">
+                    <span class="theme-preview bg-void-preview"></span>
+                    <span class="theme-name">ห้วงอวกาศ</span>
+                </button>
+                <button type="button" class="theme-btn" data-theme="bg-nebula" onclick="selectTheme('bg-nebula')">
+                    <span class="theme-preview bg-nebula-preview"></span>
+                    <span class="theme-name">เนบิวลา</span>
+                </button>
+                <button type="button" class="theme-btn" data-theme="bg-aurora" onclick="selectTheme('bg-aurora')">
+                    <span class="theme-preview bg-aurora-preview"></span>
+                    <span class="theme-name">ออโรร่า</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Change Password Section -->
+        <div class="section-group">
+            <h2>เปลี่ยนรหัสผ่าน</h2>
+            <div class="input-group">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="oldPass" placeholder="รหัสผ่านเดิม">
+            </div>
+            <div class="input-group">
+                <span class="input-icon">🔑</span>
+                <input type="password" id="newPass" placeholder="รหัสผ่านใหม่">
+            </div>
+            <button class="btn-save" onclick="changePassword()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);">เปลี่ยนรหัสผ่าน</button>
+        </div>
+        
+        <!-- Back Button -->
+        <button class="btn-back" onclick="window.location.href='index.html'">← กลับหน้าหลัก</button>
+    </div>
+    
+    <div class="right-side">
+        <!-- Overall Learning Progress Card -->
+        <div class="overall-progress-card">
+            <div class="overall-info">
+                <div class="overall-title">ความคืบหน้าการเรียนโดยรวม</div>
+                <div class="overall-subtitle" id="overallSubtitle">กำลังคำนวณข้อมูลกิจกรรม...</div>
+            </div>
+            <div class="overall-percent-box">
+                <div class="overall-number" id="overallPercent">0%</div>
+                <div class="overall-percent-label">COMPLETED</div>
+            </div>
+        </div>
+        
+        <div id="progressList"></div>
+    </div>
+</div>
+
+<!-- Modal Alert System -->
+<div id="modal" class="modal-overlay" onclick="closeModal()">
+    <div class="modal-content" id="modalBox" onclick="event.stopPropagation()">
+        <span id="modalIcon" class="icon" style="display:none;"></span>
+        <div id="modalText"></div>
+        <button id="modalCloseBtn" class="modal-close-btn" onclick="closeModal()" style="display: none;">ปิดหน้าต่าง</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyANpBI1AVwKW6X2I9EPxmflU81RpumrXwo",
+        authDomain: "teach-af247.firebaseapp.com",
+        projectId: "teach-af247",
+        storageBucket: "teach-af247.firebasestorage.app",
+        messagingSenderId: "540555116590",
+        appId: "1:540555116590:web:23e79da0c82e8c865edfbf",
+        measurementId: "G-52HK2DB5XS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const loginUser = localStorage.getItem('userName');
+    let userScores = {};
+
+    window.showModal = (isSuccess, message, isDetail = false) => {
+        const modal = document.getElementById("modal");
+        const modalBox = document.getElementById("modalBox");
+        const icon = document.getElementById("modalIcon");
+        const text = document.getElementById("modalText");
+        const closeBtn = document.getElementById("modalCloseBtn");
+        
+        text.innerHTML = message;
+        
+        if (isDetail) {
+            icon.style.display = "none";
+            closeBtn.style.display = "inline-block";
+        } else {
+            icon.style.display = "block";
+            icon.innerHTML = isSuccess ? "✅" : "❌";
+            icon.style.color = isSuccess ? "#10b981" : "#ef4444";
+            closeBtn.style.display = "none";
+        }
+        
+        modal.classList.add("active"); 
+        setTimeout(() => modalBox.classList.add("show"), 10);
+        
+        if (!isDetail) {
+            setTimeout(() => { 
+                modalBox.classList.remove("show"); 
+                setTimeout(() => modal.classList.remove("active"), 300); 
+            }, 1500);
+        }
+    };
+
+    window.closeModal = () => {
+        const modal = document.getElementById("modal");
+        const modalBox = document.getElementById("modalBox");
+        modalBox.classList.remove("show");
+        setTimeout(() => modal.classList.remove("active"), 300);
+    };
+
+    window.showUnitDetail = (unitNum) => {
+        const fullScore = 10;
+        const unit = userScores[`unit${unitNum}`] || {};
+        const displayScore = (val) => (val !== undefined && val !== null && val > 0) ? `${(val * fullScore / 100).toFixed(1)} / ${fullScore} คะแนน` : "ยังไม่ได้รับการประเมิน";
+        const rawPre = (unit.pre !== undefined && unit.pre !== null) ? Number((unit.pre * fullScore / 100).toFixed(1)) : 0;
+        const rawEx = (unit.exercise !== undefined && unit.exercise !== null) ? Number((unit.exercise * fullScore / 100).toFixed(1)) : 0;
+        const rawPost = (unit.post !== undefined && unit.post !== null) ? Number((unit.post * fullScore / 100).toFixed(1)) : 0;
+        const totalRaw = (rawPre + rawEx + rawPost).toFixed(1);
+
+        const msg = `
+            <div class="modal-detail-title">รายงานคะแนน หน่วยที่ ${unitNum}</div>
+            <div class="modal-detail-grid">
+                <div class="modal-detail-row">
+                    <span class="modal-detail-label">📖 แบบทดสอบก่อนเรียน</span>
+                    <span class="modal-detail-value" style="color: #f59e0b;">${displayScore(unit.pre)}</span>
+                </div>
+                <div class="modal-detail-row">
+                    <span class="modal-detail-label">🛠️ แบบฝึกหัดปฏิบัติการ</span>
+                    <span class="modal-detail-value" style="color: #3b82f6;">${displayScore(unit.exercise)}</span>
+                </div>
+                <div class="modal-detail-row">
+                    <span class="modal-detail-label">📝 แบบทดสอบหลังเรียน</span>
+                    <span class="modal-detail-value" style="color: #10b981;">${displayScore(unit.post)}</span>
+                </div>
+            </div>
+            <div class="modal-detail-total">
+                <span class="modal-detail-total-lbl">คะแนนสะสมหน่วยนี้</span>
+                <span class="modal-detail-total-val">${totalRaw} / 30.0 คะแนน</span>
+            </div>
+        `;
+        showModal(true, msg, true);
+    };
+
+    window.changePassword = async () => {
+        const oldPass = document.getElementById('oldPass').value.trim();
+        const newPass = document.getElementById('newPass').value.trim();
+        if (!oldPass || !newPass) { showModal(false, "กรอกรหัสให้ครบ !"); return; }
+        try {
+            const userDocRef = doc(db, "users", loginUser);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists() && docSnap.data().password === oldPass) {
+                await updateDoc(userDocRef, { password: newPass });
+                showModal(true, "เปลี่ยนรหัสผ่านเรียบร้อย!");
+                document.getElementById('oldPass').value = '';
+                document.getElementById('newPass').value = '';
+            } else { showModal(false, "รหัสผ่านเก่าไม่ถูกต้อง!"); }
+        } catch (e) { showModal(false, "เกิดข้อผิดพลาดในการตรวจสอบ"); }
+    };
+
+    let selectedTheme = 'bg-default';
+    let customBgImage = null;
+
+    function compressAndResizeImage(file, maxWidth, maxHeight, quality, callback) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                callback(dataUrl);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    window.selectTheme = (themeClass, bgImgData = null) => {
+        selectedTheme = themeClass;
+        
+        const cover = document.getElementById('profileCover');
+        if (cover) {
+            cover.className = 'cover-container ' + themeClass;
+        }
+        
+        const btnRemove = document.getElementById('btnRemoveBg');
+
+        if (themeClass === 'bg-custom') {
+            const imgToUse = bgImgData || customBgImage;
+            if (imgToUse) {
+                if (cover) cover.style.backgroundImage = `url('${imgToUse}')`;
+                if (btnRemove) btnRemove.style.display = 'inline-block';
+            } else {
+                if (cover) cover.style.backgroundImage = '';
+                if (btnRemove) btnRemove.style.display = 'none';
+            }
+        } else {
+            if (cover) cover.style.backgroundImage = '';
+            if (btnRemove) {
+                btnRemove.style.display = customBgImage ? 'inline-block' : 'none';
+            }
+        }
+        
+        // Update active class on buttons
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            if (btn.getAttribute('data-theme') === themeClass) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    };
+
+    window.removeCustomBg = () => {
+        customBgImage = null;
+        selectTheme('bg-default');
+        const fileInput = document.getElementById('bgFileInput');
+        if (fileInput) fileInput.value = '';
+    };
+
+    window.saveProfile = async () => {
+        try {
+            const updateData = {
+                nickName: document.getElementById('nickName').value.trim(),
+                profilePic: document.getElementById('preview').src,
+                bgTheme: selectedTheme
+            };
+            if (selectedTheme === 'bg-custom' && customBgImage) {
+                updateData.bgImage = customBgImage;
+            } else {
+                updateData.bgImage = null;
+            }
+
+            await updateDoc(doc(db, "users", loginUser), updateData);
+            
+            localStorage.setItem('bgTheme', selectedTheme);
+            if (selectedTheme === 'bg-custom' && customBgImage) {
+                localStorage.setItem('bgImage', customBgImage);
+            } else {
+                localStorage.removeItem('bgImage');
+            }
+            showModal(true, 'บันทึกข้อมูลเรียบร้อย!');
+        } catch (e) { showModal(false, 'บันทึกไม่สำเร็จ!'); }
+    };
+
+    window.onload = async () => {
+        if (!loginUser) { window.location.href = 'login.html'; return; }
+        
+        // Apply local storage theme immediately if available
+        const localTheme = localStorage.getItem('bgTheme');
+        const localBgImage = localStorage.getItem('bgImage');
+        if (localBgImage) {
+            customBgImage = localBgImage;
+        }
+        if (localTheme) {
+            selectTheme(localTheme, localBgImage);
+        }
+
+        const docSnap = await getDoc(doc(db, "users", loginUser));
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            document.getElementById('nickName').value = data.nickName || '';
+            if (data.profilePic) {
+                document.getElementById('preview').src = data.profilePic;
+            } else {
+                document.getElementById('preview').src = `https://ui-avatars.com/api/?name=${data.firstName || 'User'}+${data.lastName || ''}&background=6366f1&color=fff&size=120`;
+            }
+            userScores = data.scores || {};
+            renderProgress();
+
+            // Sync theme from Firestore
+            if (data.bgTheme) {
+                if (data.bgTheme === 'bg-custom' && data.bgImage) {
+                    customBgImage = data.bgImage;
+                    localStorage.setItem('bgImage', data.bgImage);
+                } else if (data.bgTheme !== 'bg-custom') {
+                    localStorage.removeItem('bgImage');
+                }
+                selectTheme(data.bgTheme, data.bgImage);
+                localStorage.setItem('bgTheme', data.bgTheme);
+            }
+        }
+    };
+
+    function calculateOverallProgress() {
+        let totalItems = 30; // 10 units * 3 components
+        let completedItems = 0;
+        
+        for (let i = 1; i <= 10; i++) {
+            const unit = userScores[`unit${i}`] || {};
+            if (unit.pre !== undefined && unit.pre !== null && unit.pre > 0) completedItems++;
+            if (unit.exercise !== undefined && unit.exercise !== null && unit.exercise > 0) completedItems++;
+            if (unit.post !== undefined && unit.post !== null && unit.post > 0) completedItems++;
+        }
+        
+        const percent = Math.round((completedItems / totalItems) * 100);
+        document.getElementById('overallPercent').innerText = `${percent}%`;
+        document.getElementById('overallSubtitle').innerText = `สำเร็จแล้ว ${completedItems} จากทั้งหมด ${totalItems} กิจกรรมหน่วยย่อย`;
+    }
+
+    function renderProgress() {
+        const container = document.getElementById('progressList');
+        container.innerHTML = ''; 
+        for(let i = 1; i <= 10; i++) {
+            const unit = userScores[`unit${i}`] || {};
+            const prePercent = (unit.pre !== undefined && unit.pre !== null && unit.pre > 0) ? 100 : 0;
+            const exPercent = (unit.exercise !== undefined && unit.exercise !== null && unit.exercise > 0) ? 100 : 0;
+            const postPercent = (unit.post !== undefined && unit.post !== null && unit.post > 0) ? 100 : 0;
+            
+            let completed = 0;
+            if (prePercent > 0) completed++;
+            if (exPercent > 0) completed++;
+            if (postPercent > 0) completed++;
+
+            container.innerHTML += `
+            <div class="progress-item" onclick="showUnitDetail(${i})">
+                <div class="progress-header">
+                    <div class="progress-title">หน่วยที่ ${i}</div>
+                    <span class="progress-badge">${completed}/3 กิจกรรม</span>
+                </div>
+                
+                <div class="row">
+                    <span>แบบทดสอบก่อนเรียน</span>
+                    <span style="color:#f59e0b;">${prePercent}%</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar pre-bar" style="width: ${prePercent}%"></div>
+                </div>
+                
+                <div class="row">
+                    <span>แบบฝึกหัดปฏิบัติการ</span>
+                    <span style="color:#3b82f6;">${exPercent}%</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar ex-bar" style="width: ${exPercent}%"></div>
+                </div>
+                
+                <div class="row">
+                    <span>แบบทดสอบหลังเรียน</span>
+                    <span style="color:#10b981;">${postPercent}%</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar quiz-bar" style="width: ${postPercent}%"></div>
+                </div>
+            </div>`;
+        }
+        calculateOverallProgress();
+    }
+
+    document.getElementById('fileInput').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) { 
+            const reader = new FileReader(); 
+            reader.onload = (e) => document.getElementById('preview').src = e.target.result; 
+            reader.readAsDataURL(file); 
+        }
+    });
+
+    document.getElementById('bgFileInput').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            compressAndResizeImage(file, 1920, 1080, 0.7, (dataUrl) => {
+                customBgImage = dataUrl;
+                selectTheme('bg-custom');
+            });
+        }
+    });
+</script>
+</body>
+</html>

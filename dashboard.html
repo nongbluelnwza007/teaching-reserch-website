@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTCM - Student Full Score Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { margin: 0; font-family: 'Sarabun', sans-serif; background: #0f172a; color: #fff; min-height: 100vh; padding: 30px; }
+        .dashboard-container { max-width: 1300px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 20px 25px rgba(0,0,0,0.3); border: 2px solid #334155; }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; padding-bottom: 20px; margin-bottom: 25px; }
+        
+        .controls-area { background: #0f172a; padding: 20px; border-radius: 12px; margin-bottom: 25px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+        .select-label { font-size: 16px; font-weight: 700; color: #38bdf8; }
+        .student-select { padding: 10px 15px; background: #1e293b; color: #fff; border: 2px solid #334155; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; min-width: 250px; }
+        .student-select:focus { border-color: #38bdf8; outline: none; }
+        
+        .student-name-display { font-size: 18px; font-weight: 700; color: #eab308; background: #1e293b; padding: 10px 20px; border-radius: 8px; border: 1px solid #334155; display: none; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: #0f172a; padding: 18px; border-radius: 12px; border: 1px solid #334155; text-align: center; }
+        .stat-title { font-size: 13px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-size: 26px; font-weight: 700; color: #38bdf8; }
+        .stat-value span { font-size: 15px; color: #64748b; font-weight: normal; }
+
+        .chart-wrapper { background: #0f172a; padding: 25px; border-radius: 15px; border: 1px solid #334155; position: relative; height: 480px; }
+        .btn-back { padding: 10px 20px; background: #4b5563; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .btn-back:hover { background: #374151; }
+
+        /* สำหรับหน้าจอมือถือที่มีความกว้างไม่เกิน 768px */
+@media only screen and (max-width: 768px) {
+    /* 1. ขยายกล่องหลักให้เต็มจอ */
+    .contact-container, .dashboard-container {
+        width: 95%;
+        padding: 20px;
+    }
+
+    /* 2. จัดการการ์ดอาจารย์ให้เรียงแนวตั้ง */
+    .instructor-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    .instructor-main {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* 3. ปรับ Stats Grid ใน Dashboard จาก 4 คอลัมน์ เป็น 2 คอลัมน์ */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* 4. ปรับขนาดฟอนต์ให้เล็กลงหน่อยในมือถือ */
+    .contact-title { font-size: 22px; }
+    .stat-value { font-size: 20px; }
+}
+
+/* สำหรับมือถือจอเล็กมาก (แนวตั้ง) */
+@media only screen and (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr; /* เรียงแถวเดียว */
+    }
+}
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <div class="dash-header">
+            <h2 style="margin:0; font-size:26px; color:#38bdf8;" id="dashTitle">📊 ระบบ Dashboard สรุปคะแนนสะสมรวมทั้งห้อง (เต็ม 100)</h2>
+            <button class="btn-back" onclick="window.location.href='index.html'">กลับหน้าหลัก</button>
+        </div>
+
+        <div class="controls-area">
+            <span class="select-label">🔍 รหัสนักเรียน:</span>
+            <select class="student-select" id="studentDropdown" onchange="handleViewToggle()">
+                <option value="">-- แสดงผลรวมทั้งชั้นเรียน (คะแนนรวมสะสม) --</option>
+            </select>
+            
+            <div class="student-name-display" id="studentNameDisplay"></div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card" style="border-top: 4px solid #f43f5e;">
+                <div class="stat-title" id="preTitle">คะแนนรวมก่อนเรียน (Pre-Test)</div>
+                <div class="stat-value" id="preValue">- <span>(0%)</span></div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #10b981;">
+                <div class="stat-title" id="postTitle">คะแนนรวมหลังเรียน (Post-Test)</div>
+                <div class="stat-value" id="postValue">- <span>(0%)</span></div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #3b82f6;">
+                <div class="stat-title" id="exTitle">คะแนนรวมแบบฝึกหัด (Exercise)</div>
+                <div class="stat-value" id="exValue">- <span>(0%)</span></div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #a855f7;">
+                <div class="stat-title">ดัชนีพัฒนาการเรียนรู้รวม</div>
+                <div class="stat-value" id="growthValue">-</div>
+            </div>
+        </div>
+
+        <div class="chart-wrapper">
+            <canvas id="allStudentsChart"></canvas>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyANpBI1AVwKW6X2I9EPxmflU81RpumrXwo", authDomain: "teach-af247.firebaseapp.com", projectId: "teach-af247", storageBucket: "teach-af247.firebasestorage.app", messagingSenderId: "540555116590", appId: "1:540555116590:web:23e79da0c82e8c865edfbf" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let classRoomCache = {}; 
+        let mainChart;
+
+        async function fetchDashboardData() {
+            try {
+                const snapshot = await db.collection("users").get();
+                const dropdown = document.getElementById('studentDropdown');
+                
+                snapshot.forEach(doc => {
+                    const username = doc.id;
+                    
+                    // 📍 [CRITICAL EXCLUDE] ดักจับคัดชื่อ 'blue' ออกจากการประมวลผลแดชบอร์ดทันที
+                    if (username === 'blue') return;
+
+                    const data = doc.data();
+                    
+                    classRoomCache[username] = {
+                        scores: data.scores || {},
+                        fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim()
+                    };
+
+                    let opt = document.createElement('option');
+                    opt.value = username;
+                    opt.innerText = `ID: ${username}`;
+                    dropdown.appendChild(opt);
+                });
+
+                renderClassView();
+
+            } catch (err) {
+                console.error("Error fetching data: ", err);
+            }
+        }
+
+        function renderClassView() {
+            document.getElementById('dashTitle').innerText = "📊 ระบบ Dashboard สรุปคะแนนสะสมรวมทั้งห้อง (เต็ม 100)";
+            document.getElementById('preTitle').innerText = "คะแนนรวมก่อนเรียนเฉลี่ยห้อง";
+            document.getElementById('postTitle').innerText = "คะแนนรวมหลังเรียนเฉลี่ยห้อง";
+            document.getElementById('exTitle').innerText = "คะแนนรวมแบบฝึกหัดเฉลี่ยห้อง";
+            
+            document.getElementById('studentNameDisplay').style.display = "none";
+
+            let labels = [];
+            let totalPreScores = [];
+            let totalExScores = [];
+            let totalPostScores = [];
+            
+            let roomSumPre = 0, roomSumEx = 0, roomSumPost = 0, count = 0;
+
+            Object.keys(classRoomCache).forEach(username => {
+                const studentInfo = classRoomCache[username];
+                const scores = studentInfo.scores;
+                let sumPreRaw = 0, sumExRaw = 0, sumPostRaw = 0;
+
+                for (let i = 1; i <= 10; i++) {
+                    const unit = scores["unit" + i] || {};
+                    sumPreRaw += unit.pre !== undefined ? Number(unit.pre) / 10 : 0;
+                    sumExRaw += unit.exercise !== undefined ? Number(unit.exercise) / 10 : 0;
+                    sumPostRaw += unit.post !== undefined ? Number(unit.post) / 10 : 0;
+                }
+
+                labels.push(username);
+                totalPreScores.push(sumPreRaw);
+                totalExScores.push(sumExRaw);
+                totalPostScores.push(sumPostRaw);
+
+                roomSumPre += sumPreRaw;
+                roomSumEx += sumExRaw;
+                roomSumPost += sumPostRaw;
+                count++;
+            });
+
+            let avgPre = count > 0 ? roomSumPre / count : 0;
+            let avgEx = count > 0 ? roomSumEx / count : 0;
+            let avgPost = count > 0 ? roomSumPost / count : 0;
+            let diff = Math.round(avgPost) - Math.round(avgPre);
+
+            document.getElementById('preValue').innerHTML = `${avgPre.toFixed(1)} แต้ม <span>(${Math.round(avgPre)}%)</span>`;
+            document.getElementById('postValue').innerHTML = `${avgPost.toFixed(1)} แต้ม <span>(${Math.round(avgPost)}%)</span>`;
+            document.getElementById('exValue').innerHTML = `${avgEx.toFixed(1)} แต้ม <span>(${Math.round(avgEx)}%)</span>`;
+            document.getElementById('growthValue').innerHTML = diff >= 0 ? `<span style="color:#10b981;">+${diff}% เติบโตเชิงบวก</span>` : `<span style="color:#f43f5e;">${diff}% ลดลง</span>`;
+
+            buildBarChart(labels, totalPreScores, totalExScores, totalPostScores, "ก่อนเรียนรวม (เต็ม 100)", "แบบฝึกหัดรวม (เต็ม 100)", "หลังเรียนรวม (เต็ม 100)");
+        }
+
+        function renderIndividualView(username) {
+            document.getElementById('dashTitle').innerText = `📊 รายงานวิเคราะห์คะแนนสะสมแยกหน่วยบุคคล: ${username}`;
+            document.getElementById('preTitle').innerText = "คะแนนรวมสะสมก่อนเรียน";
+            document.getElementById('postTitle').innerText = "คะแนนรวมสะสมหลังเรียน";
+            document.getElementById('exTitle').innerText = "คะแนนรวมสะสมแบบฝึกหัด";
+
+            const nameDisplayBox = document.getElementById('studentNameDisplay');
+            nameDisplayBox.innerText = `📋 ชื่อ-นามสกุล: ${classRoomCache[username].fullName}`;
+            nameDisplayBox.style.display = "block";
+
+            const scores = classRoomCache[username].scores;
+            let labels = [];
+            let unitPreScores = [];
+            let unitExScores = [];
+            let unitPostScores = [];
+            
+            let sumPreRaw = 0, sumExRaw = 0, sumPostRaw = 0;
+
+            for (let i = 1; i <= 10; i++) {
+                const unit = scores["unit" + i] || {};
+                let pVal = unit.pre !== undefined ? Number(unit.pre) : 0;
+                let eVal = unit.exercise !== undefined ? Number(unit.exercise) : 0;
+                let qVal = unit.post !== undefined ? Number(unit.post) : 0;
+
+                labels.push(`หน่วยที่ ${i}`);
+                unitPreScores.push(pVal);
+                unitExScores.push(eVal);
+                unitPostScores.push(qVal);
+
+                sumPreRaw += pVal / 10;
+                sumExRaw += eVal / 10;
+                sumPostRaw += qVal / 10;
+            }
+
+            let prePercent = Math.round(sumPreRaw);
+            let exPercent = Math.round(sumExRaw);
+            let postPercent = Math.round(sumPostRaw);
+            let diff = postPercent - prePercent;
+
+            document.getElementById('preValue').innerHTML = `${sumPreRaw.toFixed(1)} แต้ม <span>(${prePercent}%)</span>`;
+            document.getElementById('postValue').innerHTML = `${sumPostRaw.toFixed(1)} แต้ม <span>(${postPercent}%)</span>`;
+            document.getElementById('exValue').innerHTML = `${sumExRaw.toFixed(1)} แต้ม <span>(${exPercent}%)</span>`;
+            document.getElementById('growthValue').innerHTML = diff >= 0 ? `<span style="color:#10b981;">+${diff}% มีพัฒนาการขึ้น</span>` : `<span style="color:#f43f5e;">${diff}% ลดลง</span>`;
+
+            buildBarChart(labels, unitPreScores, unitExScores, unitPostScores, "ก่อนเรียนประจำบท (%)", "แบบฝึกหัดประจำบท (%)", "หลังเรียนประจำบท (%)");
+        }
+
+        function handleViewToggle() {
+            const selectedUser = document.getElementById('studentDropdown').value;
+            if (selectedUser === "") { renderClassView(); } else { renderIndividualView(selectedUser); }
+        }
+
+        function buildBarChart(labels, preData, exData, postData, preLabel, exLabel, postLabel) {
+            const ctx = document.getElementById('allStudentsChart').getContext('2d');
+            if (mainChart) { mainChart.destroy(); }
+
+            mainChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: preLabel,
+                            data: preData,
+                            backgroundColor: '#f43f5e',
+                            borderColor: '#e11d48',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: postLabel, 
+                            data: postData,
+                            backgroundColor: '#10b981',
+                            borderColor: '#059669',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: exLabel, 
+                            data: exData,
+                            backgroundColor: '#3b82f6',
+                            borderColor: '#1d4ed8',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#cbd5e1', font: { family: 'Sarabun', weight: 'bold' } } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#cbd5e1', font: { family: 'Sarabun', weight: 'bold' } }, grid: { color: '#334155' } },
+                        y: { beginAtZero: true, max: 100, ticks: { color: '#cbd5e1', font: { family: 'Sarabun' } }, grid: { color: '#334155' } }
+                    }
+                }
+            });
+        }
+
+        fetchDashboardData();
+    </script>
+</body>
+</html>

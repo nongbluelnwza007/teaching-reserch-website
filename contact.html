@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ติดต่ออาจารย์ผู้สอน - KTCM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <script>
+        // 1. ตรวจสอบสถานะล็อกอินปัจจุบันในระบบ
+        if (!sessionStorage.getItem('isLoggedIn') || !localStorage.getItem('userName')) {
+            sessionStorage.clear();
+            localStorage.removeItem('userName');
+            window.location.replace('login.html'); // เตะกลับหน้าแรกและล้างประวัติการเข้าชมทันที
+        }
+
+        // 2. ป้องกันการกดปุ่ม ย้อนกลับ-ถัดไป (Back-Forward Cache) ของเบราว์เซอร์เพื่อแอบข้ามหน้า
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload(); // บังคับรีเฟรชหน้าจอเพื่อตรวจสอบสิทธิ์ใหม่
+            }
+        });
+    </script>
+    <style>
+        body { 
+            margin: 0; 
+            font-family: 'Sarabun', sans-serif; 
+            background: #0f172a; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            background-image: radial-gradient(#1e293b 1px, transparent 1px); 
+            background-size: 30px 30px; 
+            color: #fff; 
+        }
+        
+        /* 📍 ขยายความกว้างกล่องจาก 700px เป็น 900px และเพิ่ม Padding ภายใน */
+        .contact-container { 
+            background: white; 
+            padding: 50px; 
+            border-radius: 30px; 
+            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.6); 
+            width: 900px; 
+            border: 5px solid #3b82f6; 
+            color: #0f172a;
+        }
+        
+        .contact-header { 
+            text-align: center;
+            border-bottom: 3px solid #e2e8f0; 
+            padding-bottom: 20px; 
+            margin-bottom: 35px; 
+        }
+        
+        /* 📍 ขยายฟอนต์หัวข้อใหญ่ขึ้น */
+        .contact-title { margin: 0; font-size: 34px; font-weight: 700; color: #0f172a; }
+        
+        .instructor-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 40px; 
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
+        }
+        
+        .instructor-main {
+            display: flex;
+            align-items: center;
+            gap: 35px;
+        }
+        
+        /* 📍 ขยายขนาดรูปโปรไฟล์อาจารย์จาก 90px เป็น 140px */
+        .instructor-profile-img {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #3b82f6;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* 📍 ขยายขนาดตัวอักษรข้อมูลภายในทั้งหมด */
+        .instructor-info h3 { margin: 0 0 12px 0; font-size: 28px; font-weight: 700; color: #0f172a; }
+        .instructor-info p { margin: 10px 0; font-size: 19px; color: #475569; font-weight: 600; }
+
+        /* 📍 ขยายพื้นที่กล่องจัดวาง QR Code line.jpg */
+        .qrcode-box-area {
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 16px;
+            border: 2px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        /* 📍 ขยายขนาดรูปภาพ QR Code จาก 110px เป็น 160px */
+        .qrcode-image-render {
+            width: 160px;
+            height: 160px;
+            object-fit: contain;
+            display: block;
+        }
+        
+        /* 📍 ขยายตัวหนังสือใต้ QR Code */
+        .qrcode-footer-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: #06b6d4;
+            margin: 0;
+        }
+
+        .action-footer { 
+            display: flex; 
+            justify-content: center; 
+            margin-top: 15px; 
+        }
+        
+        /* 📍 ปรับขยายขนาดปุ่มกดให้ใหญ่สมดุลกับตัวกล่อง */
+        .btn-back { 
+            padding: 16px 60px; 
+            border: none; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            font-family: inherit; 
+            cursor: pointer; 
+            font-size: 20px; 
+            transition: 0.3s;
+            background: #64748b; 
+            color: white; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .btn-back:hover { 
+            background: #475569; 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .btn-back:active {
+            transform: translateY(0);
+        }
+
+        /* สำหรับหน้าจอมือถือที่มีความกว้างไม่เกิน 768px */
+@media only screen and (max-width: 768px) {
+    /* 1. ขยายกล่องหลักให้เต็มจอ */
+    .contact-container, .dashboard-container {
+        width: 95%;
+        padding: 20px;
+    }
+
+    /* 2. จัดการการ์ดอาจารย์ให้เรียงแนวตั้ง */
+    .instructor-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    .instructor-main {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* 3. ปรับ Stats Grid ใน Dashboard จาก 4 คอลัมน์ เป็น 2 คอลัมน์ */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* 4. ปรับขนาดฟอนต์ให้เล็กลงหน่อยในมือถือ */
+    .contact-title { font-size: 22px; }
+    .stat-value { font-size: 20px; }
+}
+
+/* สำหรับมือถือจอเล็กมาก (แนวตั้ง) */
+@media only screen and (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr; /* เรียงแถวเดียว */
+    }
+}
+    </style>
+</head>
+<body>
+
+    <div class="contact-container">
+        <div class="contact-header">
+            <h2 class="contact-title">ช่องทางติดต่ออาจารย์ผู้สอน</h2>
+        </div>
+
+        <div class="instructor-card">
+            <div class="instructor-main">
+                <img src="" alt="อาจารย์ผู้สอน" class="instructor-profile-img" onerror="this.src='https://via.placeholder.com/140';">
+                
+                <div class="instructor-info">
+                    <h3>อาจารย์ กันตพัฒน์ (บลู)</h3>
+                    <p>📧 อีเมล: 66030010@kmitl.ac.th</p>
+                    <p>🏢 ห้องพักครู: อาคารปฏิบัติการคอมพิวเตอร์ ชั้น 2</p>
+                    <p>📞 เบอร์โทรศัพท์: 064-4192734 (ติดต่อเวลาราชการเท่านั้น)</p>
+                </div>
+            </div>
+            
+            <div class="qrcode-box-area">
+                <img src="images/line.jpg" alt="Line QR Code" class="qrcode-image-render">
+                <p class="qrcode-footer-text">Scan Line QR Code</p>
+            </div>
+        </div>
+
+        <div class="action-footer">
+            <button class="btn-back" onclick="window.location.href='./index.html'">กลับหน้าหลัก</button>
+        </div>
+    </div>
+
+</body>
+</html>

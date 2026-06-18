@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTCM Computer Maintenance</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // 1. ตรวจสอบสถานะล็อกอินปัจจุบันในระบบ
+        if (!sessionStorage.getItem('isLoggedIn') || !localStorage.getItem('userName')) {
+            sessionStorage.clear();
+            localStorage.removeItem('userName');
+            window.location.replace('login.html'); // เตะกลับหน้าแรกและล้างประวัติการเข้าชมทันที
+        }
+
+        // 2. ป้องกันการกดปุ่ม ย้อนกลับ-ถัดไป (Back-Forward Cache) ของเบราว์เซอร์เพื่อแอบข้ามหน้า
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload(); // บังคับรีเฟรชหน้าจอเพื่อตรวจสอบสิทธิ์ใหม่
+            }
+        });
+    </script>
+    <script>
+        if (!sessionStorage.getItem('isLoggedIn')) { window.location.href = 'login.html'; }
+    </script>
+
+
+
+
+</head>
+<body>
+
+    <div id="menuBackdrop" class="menu-backdrop"></div>
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()"> ☰ </button>    
+    <div class="app-container">
+        <nav id="sidebar">
+            <div class="sidebar-header"><h2 class="course-title">KTCM Computer Maintenance</h2></div>
+                <div class="floating-nav">
+                    <a href="dashboard.html" id="dash-btn" class="float-btn" style="display: none; background: #0f172a;">Dashboard</a>
+
+                    <a href="exercise.html" class="float-btn">แบบฝึกหัด</a>
+                    <a href="quiz.html" class="float-btn">แบบทดสอบ</a>
+                    <a href="contact.html" class="float-btn">ติดต่ออาจารย์</a>
+                </div>
+            <div class="menu-scroll">
+                <div class="menu-group"><div class="main-link" onclick="goToSlide(0)">แนะนำรายวิชา</div></div>
+                <div class="menu-group">
+                    <div class="main-link" onclick="toggleMenu(this)">หน่วยที่ 1 ความรู้พื้นฐาน</div>
+                    <ul class="sub-menu">
+                        <li class="sub-item" onclick="goToSlide(1, this)">1.1 ประเภทคอมพิวเตอร์</li>
+                        <li class="sub-item" onclick="goToSlide(2, this)">1.2 หลักการทำงาน</li>
+                        <li class="sub-item" onclick="goToSlide(3, this)">1.3 ปัจจัยการทำงาน</li>
+                        <li class="sub-item" onclick="goToSlide(4, this)">1.4 อุปกรณ์ต่อพ่วง</li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <div class="main-link" onclick="toggleMenu(this)">หน่วยที่ 2 อุปกรณ์ภายใน</div>
+                    <ul class="sub-menu">
+                        <li class="sub-item" onclick="goToSlide(5, this)">2.1 อุปกรณ์ภายใน</li>
+                        <li class="sub-item" onclick="goToSlide(6, this)">2.2 อุปกรณ์บนเมนบอร์ด</li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <div class="main-link" onclick="toggleMenu(this)">หน่วยที่ 3 การเลือกอุปกรณ์</div>
+                    <ul class="sub-menu">
+                        <li class="sub-item" onclick="goToSlide(7, this)">3.1 การเลือกอุปกรณ์ภายใน</li>
+                        <li class="sub-item" onclick="goToSlide(8, this)">3.2 การเลือกอุปกรณ์ต่อพ่วง</li>
+                        <li class="sub-item" onclick="goToSlide(9, this)">3.3 กลยุทธ์การบริหารความเสี่ยง</li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <div class="main-link" onclick="toggleMenu(this)">หน่วยที่ 4 กระบวนการประกอบ</div>
+                    <ul class="sub-menu">
+                        <li class="sub-item" onclick="goToSlide(10, this)">4.1 การเตรียมพร้อม</li>
+                        <li class="sub-item" onclick="goToSlide(11, this)">4.2 ติดตั้ง CPU</li>
+                        <li class="sub-item" onclick="goToSlide(12, this)">4.3 ติดตั้ง RAM</li>
+                        <li class="sub-item" onclick="goToSlide(13, this)">4.4 ติดตั้งเมนบอร์ด</li>
+                        <li class="sub-item" onclick="goToSlide(14, this)">4.5 ต่อสายสัญญาณ</li>
+                        <li class="sub-item" onclick="goToSlide(15, this)">4.6 ติดตั้ง Storage</li>
+                        <li class="sub-item" onclick="goToSlide(16, this)">4.7 ติดตั้งการ์ดจอ</li>
+                        <li class="sub-item" onclick="goToSlide(17, this)">4.8 ตรวจสอบระบบ</li>
+                        <li class="sub-item" onclick="goToSlide(18, this)">4.9 เสียงสัญญาณแจ้งเตือนจากไบออส</li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <div class="main-link" onclick="toggleMenu(this)">หน่วยที่ 5 การกำหนดค่า BIOS และ UEFI</div>
+                    <ul class="sub-menu">
+                        <li class="sub-item" onclick="goToSlide(19, this)">5.1 BIOS และ UEFI: ต่างกันอย่างไร?</li>
+                        <li class="sub-item" onclick="goToSlide(20, this)">5.2 การตั้งค่า BIOS และ UEFI</li>
+                        <li class="sub-item" onclick="goToSlide(21, this)">5.3 ตัวอย่างการตั้งค่า BIOS แบบเก่า (Legacy)</li>
+                        <li class="sub-item" onclick="goToSlide(22, this)">5.4 ตัวอย่างการตั้งค่า BIOS แบบ UEFI (Modern)</li>
+                        <li class="sub-item" onclick="goToSlide(23, this)">5.5 การปรับปรุงข้อมูลใน BIOS (BIOS Update)</li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <div class="main-link" onclick="toggleMenu(this)">หน่วยที่ 6 การติดตั้งระบบปฏิบัติการ</div>
+                    <ul class="sub-menu">
+                        <li class="sub-item" onclick="goToSlide(24, this)">6.1 สถาปัตยกรรมของระบบปฏิบัติการ</li>
+                        <li class="sub-item" onclick="goToSlide(25, this)">6.2 การเตรียมตัวระดับมืออาชีพ</li>
+                        <li class="sub-item" onclick="goToSlide(26, this)">6.3 การติดตั้ง Windows 10</li>
+                        <li class="sub-item" onclick="goToSlide(27, this)">6.4 การติดตั้ง Windows 11</li>
+                        <li class="sub-item" onclick="goToSlide(28, this)">6.5 การปรับแต่งระบบหลังติดตั้ง</li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <div class="main-link" onclick="toggleMenu(this)">หน่วยที่ 7 การติดตั้งระบบปฏิบัติการ</div>
+                    <ul class="sub-menu">
+                        <li class="sub-item" onclick="goToSlide(29, this)">7.1 ซอฟต์แวร์ใช้งาน (Application Software)</li>
+                        <li class="sub-item" onclick="goToSlide(30, this)">7.2 การติดตั้งโปรแกรม Microsoft Office</li>
+                        <li class="sub-item" onclick="goToSlide(31, this)">7.3 การติดตั้งโปรแกรมใช้งานทั่วไป</li>
+                        <li class="sub-item" onclick="goToSlide(32, this)">7.4 การถอนโปรแกรม (Uninstallation)</li>
+                        <li class="sub-item" onclick="goToSlide(33, this)">7.5 การติดตั้งโปรแกรมควบคุมอุปกรณ์ (Device Driver)</li>
+                        <li class="sub-item" onclick="goToSlide(34, this)">7.6 การสำรองและจัดการไดรเวอร์ (Driver Backup)</li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <div class="main-link" onclick="toggleMenu(this)">หน่วยที่ 8 การทดสอบและวิเคราะห์ระบบ</div>
+                    <ul class="sub-menu">
+                        <li class="sub-item" onclick="goToSlide(35, this)">8.1 การตรวจสอบและรายงานผลการทดสอบ</li>
+                        <li class="sub-item" onclick="goToSlide(36, this)">8.2 การจัดการพาร์ทิชันระดับล่าง</li>
+                        <li class="sub-item" onclick="goToSlide(37, this)">8.3 การโคลนฮาร์ดดิสก์และการย้ายระบบ</li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <div class="main-link" onclick="toggleMenu(this)">หน่วยที่ 9 การแก้ไขปัญหาคอมพิวเตอร์</div>
+                    <ul class="sub-menu">
+                        <li class="sub-item" onclick="goToSlide(38, this)">9.1 กระบวนการแก้ไขปัญหาคอมพิวเตอร์</li>
+                        <li class="sub-item" onclick="goToSlide(39, this)">9.3 การแก้ไขปัญหาอุปกรณ์ต่อพ่วง</li>
+                        <li class="sub-item" onclick="goToSlide(40, this)">9.4 ประเภทของไวรัสและมัลแวร์เชิงเทคนิค</li>
+                        <li class="sub-item" onclick="goToSlide(41, this)">9.5 การตรวจสอบและการสร้างระบบป้องกัน</li>
+                        <li class="sub-item" onclick="goToSlide(42, this)">9.6 โปรแกรมตรวจจับและกำจัด</li>
+                    </ul>
+                </div>
+                <div class="menu-group">
+                    <div class="main-link" onclick="toggleMenu(this)">หน่วยที่ 10 การบำรุงรักษาและการปรับปรุงระบบ</div>
+                    <ul class="sub-menu">
+                        <li class="sub-item" onclick="goToSlide(43, this)">10.1 การบำรุงรักษาเครื่องและอุปกรณ์ต่อพ่วง</li>
+                        <li class="sub-item" onclick="goToSlide(44, this)">10.2 การบำรุงรักษาซอฟต์แวร์</li>
+                        <li class="sub-item" onclick="goToSlide(45, this)">10.3 การสำรองและกู้คืนข้อมูล</li>
+                        <li class="sub-item" onclick="goToSlide(46, this)">10.4 การปรับปรุงเครื่อง</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="user-profile">
+                <div class="user-profile-cover bg-default" id="sidebar-cover"></div>
+                <script>
+                    (function() {
+                        const savedTheme = localStorage.getItem('bgTheme');
+                        const savedBgImage = localStorage.getItem('bgImage');
+                        if (savedTheme) {
+                            const cover = document.getElementById('sidebar-cover');
+                            if (cover) {
+                                cover.className = 'user-profile-cover ' + savedTheme;
+                                if (savedTheme === 'bg-custom' && savedBgImage) {
+                                    cover.style.backgroundImage = 'url(' + savedBgImage + ')';
+                                }
+                            }
+                        }
+                    })();
+                </script>
+                <div class="user-avatar" id="main-avatar"></div>
+                <div class="user-info">
+                    <div class="user-name" id="display-full-name">กำลังโหลด...</div>
+                    <div class="user-role" id="display-user-role">ผู้เรียน</div>
+                    <div class="profile-actions">
+                        <a href="./profile.html" class="profile-link-nav">โปรไฟล์ส่วนตัว</a>
+                        <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main id="main-content">
+            <div class="content-inner" id="page-content"></div>
+            <footer class="footer-nav">
+                <button class="nav-btn" onclick="changePage(-1)">ย้อนกลับ</button>
+                <div id="pageCounter"></div>
+                <button class="nav-btn" onclick="changePage(1)">ถัดไป</button>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+    function toggleMobileMenu(){
+        document.getElementById("sidebar").classList.toggle("show");
+        document.getElementById("menuBackdrop").classList.toggle("show");
+    }
+    document.getElementById("menuBackdrop").addEventListener("click",function(){
+        document.getElementById("sidebar").classList.remove("show");
+        this.classList.remove("show");
+    });
+    </script>
+
+    <script src="script.js"></script>
+    <script src="dataunit1.js"></script><script src="dataunit2.js"></script><script src="dataunit3.js"></script><script src="dataunit4.js"></script><script src="dataunit5.js"></script><script src="dataunit6.js"></script><script src="dataunit7.js"></script><script src="dataunit8.js"></script><script src="dataunit9.js"></script><script src="dataunit10.js"></script>
+    <script src="userlist.js"></script> 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        const firebaseConfig = { apiKey: "AIzaSyANpBI1AVwKW6X2I9EPxmflU81RpumrXwo", authDomain: "teach-af247.firebaseapp.com", projectId: "teach-af247", storageBucket: "teach-af247.firebasestorage.app", messagingSenderId: "540555116590", appId: "1:540555116590:web:23e79da0c82e8c865edfbf", measurementId: "G-52HK2DB5XS" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window.logout = () => { sessionStorage.removeItem('isLoggedIn'); localStorage.removeItem('userName'); window.location.href = 'login.html'; };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const loginUser = localStorage.getItem('userName');
+            if (!loginUser) { window.location.href = 'login.html'; return; }
+
+            if (loginUser === 'blue') {
+                const dashBtn = document.getElementById('dash-btn');
+                if (dashBtn) dashBtn.style.display = 'block'; 
+            }
+
+            const docSnap = await getDoc(doc(db, "users", loginUser));
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById('display-full-name').innerText = `${data.firstName} ${data.lastName}${data.nickName ? ' ('+data.nickName+')' : ''}`;
+                const avatar = document.getElementById('main-avatar');
+                avatar.style.backgroundImage = data.profilePic ? `url('${data.profilePic}')` : `url('https://ui-avatars.com/api/?name=${data.firstName}+${data.lastName}&background=0ea5e9&color=fff&size=60')`;
+                
+                // Set dynamic role badge
+                const roleBadge = document.getElementById('display-user-role');
+                if (roleBadge) {
+                    if (loginUser === 'blue') {
+                        roleBadge.innerText = 'อาจารย์ผู้สอน';
+                        roleBadge.className = 'user-role admin';
+                    } else {
+                        roleBadge.innerText = 'ผู้เรียน';
+                        roleBadge.className = 'user-role student';
+                    }
+                }
+
+                // Apply background theme from Firestore
+                if (data.bgTheme) {
+                    const cover = document.getElementById('sidebar-cover');
+                    if (cover) {
+                        cover.className = 'user-profile-cover ' + data.bgTheme;
+                        if (data.bgTheme === 'bg-custom' && data.bgImage) {
+                            cover.style.backgroundImage = `url('${data.bgImage}')`;
+                            localStorage.setItem('bgImage', data.bgImage);
+                        } else {
+                            cover.style.backgroundImage = '';
+                            localStorage.removeItem('bgImage');
+                        }
+                    }
+                    localStorage.setItem('bgTheme', data.bgTheme);
+                }
+            }
+
+            if (typeof goToSlide === 'function') goToSlide(0);
+        });
+    </script>
+</body>
+</html>

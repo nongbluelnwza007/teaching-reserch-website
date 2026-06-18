@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบทดสอบ หน่วยที่ 4 - KTCM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            margin: 0; 
+            font-family: 'Sarabun', 'TH Sarabun PSK', sans-serif; 
+            background: #0f172a; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            background-image: radial-gradient(#1e293b 1px, transparent 1px); 
+            background-size: 30px 30px; 
+            color: #0f172a; 
+        }
+        .quiz-container-box { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 600px; border: 4px solid #0ea5e9; transition: 0.3s; }
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
+        .quiz-title { margin: 0; font-size: 24px; font-weight: 700; }
+        .progress-text { color: #64748b; font-size: 18px; font-weight: bold; }
+        
+        .question-box { font-size: 22px; font-weight: 700; margin-bottom: 20px; line-height: 1.6; }
+        .options-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
+        .option-item { padding: 15px 20px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; font-size: 18px; transition: 0.2s; }
+        .option-item:hover { border-color: #0ea5e9; background: #f0f9ff; }
+        .option-item.selected { border-color: #0ea5e9; background: #0ea5e9; color: white; font-weight: bold; }
+        
+        .quiz-footer { display: flex; justify-content: space-between; }
+        .btn { padding: 12px 25px; border: none; border-radius: 10px; font-weight: 700; font-family: inherit; cursor: pointer; font-size: 18px; transition: 0.3s; }
+        .btn-back { background: #64748b; color: white; }
+        .btn-next { background: #0ea5e9; color: white; }
+        .btn-next:disabled { background: #cbd5e1; cursor: not-allowed; color: #94a3b8; }
+        
+        /* Modal หลักเด้งกลางจออเนกประสงค์ */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .modal-content { background: white; padding: 40px; border-radius: 30px; text-align: center; width: 340px; box-shadow: 0 20px 25px rgba(0,0,0,0.2); }
+        
+        /* ส่วนปุ่มสไตล์คู่ในกล่องยกเลิก */
+        .modal-btn-group { display: flex; gap: 12px; margin-top: 25px; justify-content: center; }
+        .modal-btn-confirm { flex: 1; padding: 12px; background: #eab308; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; font-family: inherit; cursor: pointer; transition: 0.2s; }
+        .modal-btn-confirm:hover { background: #ca8a04; }
+        .modal-btn-cancel { flex: 1; padding: 12px; background: #64748b; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; font-family: inherit; cursor: pointer; transition: 0.2s; }
+        .modal-btn-cancel:hover { background: #475569; }
+
+                /* สำหรับหน้าจอมือถือที่มีความกว้างไม่เกิน 768px */
+        @media only screen and (max-width: 768px) {
+            .quiz-container-box {
+                width: 95% !important;
+                padding: 20px 15px !important;
+                margin: 10px auto !important;
+                box-sizing: border-box !important;
+            }
+            .question-box {
+                font-size: 18px !important;
+                margin-bottom: 15px !important;
+                line-height: 1.5 !important;
+            }
+            .option-item {
+                font-size: 16px !important;
+                padding: 12px 15px !important;
+            }
+            .btn {
+                font-size: 16px !important;
+                padding: 10px 20px !important;
+            }
+            .modal-content {
+                width: 90% !important;
+                padding: 20px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container-box" id="quizMainBox">
+        <div class="quiz-header">
+            <h2 class="quiz-title" id="quiz-header-title">แบบทดสอบ หน่วยที่ 4</h2>
+            <span class="progress-text" id="progress-track">ข้อที่ 0/0</span>
+        </div>
+
+        <div>
+            <div class="question-box" id="question-text">คำถามกำลังโหลด...</div>
+            <div class="options-list" id="options-container"></div>
+        </div>
+
+        <div class="quiz-footer">
+            <button class="btn btn-back" onclick="cancelQuiz()">ยกเลิก</button>
+            <button class="btn btn-next" id="nextBtn" disabled>ถัดไป</button>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span id="auth-icon" style="font-size:70px; display:block; margin-bottom:15px;">❌</span>
+            <h2 id="auth-title">สิทธิ์เข้าทำข้อสอบถูกบล็อก</h2>
+            <p id="auth-text" style="font-size: 18px; margin-bottom: 10px; color: #475569; line-height: 1.6;">กำลังตรวจสอบสิทธิ์...</p>
+            
+            <div class="modal-btn-group" id="modalBtnGroup">
+                <button class="btn btn-next" id="auth-modal-btn" onclick="window.location.href='../quiz.html'" style="width: 100%;">กลับหน้าเลือกบทเรียน</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyANpBI1AVwKW6X2I9EPxmflU81RpumrXwo", authDomain: "teach-af247.firebaseapp.com", projectId: "teach-af247", storageBucket: "teach-af247.firebasestorage.app", messagingSenderId: "540555116590", appId: "1:540555116590:web:23e79da0c82e8c865edfbf", measurementId: "G-52HK2DB5XS" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const loginUser = localStorage.getItem('userName');
+
+        if (!loginUser) { window.location.href = '../login.html'; }
+
+        const currentUnit = 4; // 📍 ระบุหน่วยที่ 4 (เปลี่ยนตามบทเรียน)
+        const selectedType = localStorage.getItem('activeQuizType') || 'pre';
+        const typeLabel = selectedType === 'pre' ? 'ก่อนเรียน' : 'หลังเรียน';
+
+        const quizQuestions = [
+            { q: "1. หากไม่มีแผ่นรองป้องกันไฟฟ้าสถิต (ESD Mat) พื้นผิวในข้อใดที่เหมาะสมที่สุดในการนำมารองแผ่นเมนบอร์ดเพื่อประกอบอุปกรณ์?", อาศัย: ["พรมปูพื้น", "ฝาเคสโลหะ", "กล่องกระดาษบรรจุเมนบอร์ด", "โต๊ะกระจกนำไฟฟ้า"], a: 2 },
+            { q: "2. การสังเกตทิศทางก่อนวางหน่วยประมวลผลกลาง (CPU) ลงบนซ็อกเก็ตเมนบอร์ด ต้องสังเกตเครื่องหมายรูปแบบใด?", อาศัย: ["แถบสีแดงบาร์โค้ด", "สัญลักษณ์รูปสามเหลี่ยมที่มุม CPU", "รอยหยักด้านขวา", "ตัวอักษรระบุรุ่น"], a: 1 },
+            { q: "3. การทาซิลิโคน (Thermal Paste) บนตัว CPU วิธีการใดที่ระบบแนะนำเพื่อให้ความดันหน้าสัมผัสกระจายตัวได้สม่ำเสมอที่สุด?", อาศัย: ["ทาเคลือบหนาๆ ให้เต็มกระดอง", "แต้มขนาดเท่าเมล็ดถั่วเขียวไว้ตรงกลาง", "ป้ายเป็นรูปกากบาทหนาๆ", "ไม่ต้องทาเพราะพัดลมสัมผัสตรงอยู่แล้ว"], a: 1 },
+            { q: "4. การติดตั้งหน่วยความจำ (RAM) ที่ถูกต้อง สังเกตได้อย่างไรว่าตัว RAM ลงล็อกกับช่องสล็อตสมบูรณ์แล้ว?", อาศัย: ["มีแถบไฟ RGB เด้งเตือนทันที", "ตัวล็อกที่ปลายสล็อตดีดกลับมาล็อกและมีเสียงคลิกดังทั้งสองฝั่ง", "ขอบแรมเสมอกับพัดลมระบายความร้อน", "ใช้ไขควงขันยึดน็อตแรมอีกชั้น"], a: 1 },
+            { q: "5. อุปกรณ์ใดที่ต้องติดตั้งเข้ากับตัวเคสก่อนวางเมนบอร์ดเสมอ เพื่อป้องกันลายวงจรด้านหลังลัดวงจรช็อตกับตัวเคสโลหะ?", อาศัย: ["I/O Shield", "Standoffs (หมุดทองเหลืองรองบอร์ด)", "PSU Bracket", "Drive Bay"], a: 1 },
+            { q: "6. แผ่นเหล็กปิดช่องพอร์ตด้านหลังเคสคอมพิวเตอร์ (I/O Shield) ควรได้รับการติดตั้งในขั้นตอนใด?", อาศัย: ["ติดตั้งหลังจากขันน็อตเมนบอร์ดเสร็จ", "ติดตั้งก่อนการวางแผ่นเมนบอร์ดลงในเคส", "ติดตั้งพร้อมกับการ์ดจอ", "ติดตั้งท้ายสุดหลังจัดสายไฟ"], a: 1 },
+            { q: "7. ผลกระทบที่ร้ายแรงที่สุดหากผู้ประกอบคอมพิวเตอร์เสียบสายไฟหลัก (24-pin) หรือไฟเลี้ยง CPU (8-pin) ไม่แน่นคืออะไร?", อาศัย: ["ระบบทำงานช้าลง 50%", "เกิดความร้อนสะสมที่ขั้วต่อจนพลาสติกละลายและช็อต", "ไฟ RGB ไม่ติด", "พัดลมจะหมุนย้อนศร"], a: 1 },
+            { q: "8. การติดตั้งการ์ดจอสมัยใหม่ที่มีน้ำหนักมาก หากไม่ขันน็อตยึดเข้ากับโครงเคสให้แน่นจะเกิดผลเสียในระยะยาวอย่างไร?", อาศัย: ["ทำให้พัดลมการ์ดจอหยุดทำงาน", "เกิดอาการการ์ดจอห้อย (GPU Sag) ซึ่งอาจทำให้พอร์ต PCIe บนบอร์ดเสียหาย", "ความเร็ว VRAM จะลดลง", "ระบบจะมองเห็นการ์ดจอเป็นออนบอร์ด"], a: 1 },
+            { q: "9. เมื่อเปิดเครื่องคอมพิวเตอร์หลังประกอบเสร็จ แล้วระบบพ่นเสียงบี๊บยาวซ้ำๆ (Repeating Long Beeps) บ่งบอกถึงปัญหาส่วนใด?", อาศัย: ["การ์ดจอเสียหรือไม่แน่น", "RAM หลวม หรือมีปัญหา", "CPU ร้อนจัดระบบปิดตัวเอง", "แหล่งจ่ายไฟช็อตรุนแรง"], a: 1 },
+            { q: "10. สัญญาณเสียงแจ้งเตือนจากไบออสรูปแบบใด (BIOS Beep Codes) ที่ระบุว่าการ์ดจอ (Graphics Card) มีปัญหาหรือไม่แน่น?", อาศัย: ["No Beeps", "Continuous Short Beeps", "1 Long, 2-3 Short Beeps", "High-Low Warble"], a: 2 }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = null;
+
+        document.getElementById('quiz-header-title').innerText = `แบบทดสอบ${typeLabel} หน่วยที่ ${currentUnit}`;
+        document.getElementById('quizMainBox').style.borderColor = selectedType === 'pre' ? '#f59e0b' : '#10b981';
+
+        // ระบบคัดกรองความปลอดภัยตรวจสอบสิทธิ์ต้นทาง
+        async function checkAccessSecurity() {
+            if (selectedType === 'post') {
+                try {
+                    const docSnap = await db.collection("users").doc(loginUser).get();
+                    let passed = false;
+                    
+                    if (docSnap.exists) {
+                        const data = docSnap.data();
+                        const unitData = data.scores ? data.scores["unit" + currentUnit] : null;
+                        if (unitData && unitData.pre !== undefined && unitData.pre !== null && unitData.pre !== 0) {
+                            passed = true;
+                        }
+                    }
+
+                    if (!passed) {
+                        // ปรับแต่งปุ่มเดี่ยวเมื่อโดนบล็อกสิทธิ์
+                        document.getElementById('modalBtnGroup').innerHTML = `<button class="btn btn-next" onclick="window.location.href='../quiz.html'" style="width: 100%;">กลับหน้าเลือกบทเรียน</button>`;
+                        document.getElementById('auth-icon').innerText = "❌";
+                        document.getElementById('auth-icon').style.color = "#ef4444";
+                        document.getElementById('auth-title').innerText = "สิทธิ์เข้าทำข้อสอบถูกบล็อก";
+                        document.getElementById('auth-text').innerText = "นายต้องทำแบบทดสอบก่อนเรียน (Pre-Test) ของหน่วยนี้ให้ผ่านและได้คะแนนมากกว่า 0 ก่อน จึงจะทำหลังเรียนได้!";
+                        document.getElementById('auth-modal').style.display = 'flex';
+                        return; 
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = true;
+            selectedAnswer = null;
+            nextBtn.innerText = currentQuestionIndex === quizQuestions.length - 1 ? "ส่งข้อสอบ" : "ถัดไป";
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            const currentQuestion = quizQuestions[currentQuestionIndex];
+            document.getElementById('progress-track').innerText = `ข้อที่ ${currentQuestionIndex + 1}/${quizQuestions.length}`;
+            document.getElementById('question-text').innerText = currentQuestion.q;
+            
+            currentQuestion.อาศัย.forEach((option, index) => {
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.innerText = option;
+                div.onclick = () => {
+                    document.querySelectorAll('.option-item').forEach(opt => opt.classList.remove('selected'));
+                    div.classList.add('selected');
+                    selectedAnswer = index;
+                    nextBtn.disabled = false;
+                };
+                container.appendChild(div);
+            });
+        }
+
+        document.getElementById('nextBtn').addEventListener('click', async () => {
+            if (selectedAnswer === quizQuestions[currentQuestionIndex].a) score++;
+
+            if (currentQuestionIndex < quizQuestions.length - 1) {
+                currentQuestionIndex++;
+                showQuestion();
+            } else {
+                await saveScore();
+            }
+        });
+
+        async function saveScore() {
+            const finalPercentage = Math.round((score / quizQuestions.length) * 100);
+            try {
+                const userDocRef = db.collection("users").doc(loginUser);
+                const docSnap = await userDocRef.get();
+                
+                let currentScores = {};
+                if (docSnap.exists && docSnap.data().scores) {
+                    currentScores = docSnap.data().scores;
+                }
+
+                if (!currentScores["unit" + currentUnit]) {
+                    currentScores["unit" + currentUnit] = { pre: 0, exercise: 0, post: 0 };
+                }
+                
+                currentScores["unit" + currentUnit][selectedType] = finalPercentage;
+                await userDocRef.update({ scores: currentScores });
+
+                // เรนเดอร์ปุ่มเดี่ยวสำหรับส่งคะแนนเสร็จสิ้น
+                document.getElementById('modalBtnGroup').innerHTML = `<button class="btn btn-next" onclick="window.location.href='../quiz.html'" style="width: 100%;">กลับหน้าเลือกบทเรียน</button>`;
+                document.getElementById('auth-icon').innerText = "🎉";
+                document.getElementById('auth-icon').style.color = "#10b981";
+                document.getElementById('auth-title').innerText = "บันทึกคะแนนเสร็จสิ้น!";
+                document.getElementById('auth-text').innerHTML = `แบบทดสอบ<b>${typeLabel}</b> หน่วยที่ ${currentUnit}<br>ได้คะแนน: <b>${score} / ${quizQuestions.length}</b> ข้อ (${finalPercentage}%)`;
+                document.getElementById('auth-modal').style.display = 'flex';
+            } catch (e) {
+                alert("ระบบขัดข้อง แต่นายทำได้ " + score + " คะแนน!");
+                window.location.href = '../quiz.html';
+            }
+        }
+
+        // 📍 🛠️ ฟังก์ชัน Custom ยกเลิกข้อสอบแบบดึง UI สีเหลืองเครื่องหมายคำถามและปุ่มคู่ทำงาน 🛠️ 📍
+        window.cancelQuiz = () => {
+            const modal = document.getElementById('auth-modal');
+            const icon = document.getElementById('auth-icon');
+            const title = document.getElementById('auth-title');
+            const text = document.getElementById('auth-text');
+            const btnGroup = document.getElementById('modalBtnGroup');
+
+            // 1. เปลี่ยนสไตล์เป็น สีเหลือง เครื่องหมายคำถาม คุมโทนสวยงาม
+            icon.innerText = "❓";
+            icon.style.color = "#eab308"; // สีเหลืองสดสว่างตา
+            title.innerText = "ต้องการยกเลิกใช่ไหม?";
+            text.innerText = "หากกดยืนยันการยกเลิกการทำข้อสอบในครั้งนี้ คะแนนปัจจุบันของจะไม่ถูกบันทึกลงในระบบ!";
+
+            // 2. เรนเดอร์ปุ่มคู่ (ยืนยันยกเลิก VS ทำข้อสอบต่อ) ยัดเข้ากล่องควบคุมแทนปุ่มเดี่ยวเดิม
+            btnGroup.innerHTML = `
+                <button class="modal-btn-confirm" onclick="window.location.href='../quiz.html'">ยืนยันยกเลิก</button>
+                <button class="modal-btn-cancel" onclick="closeCancelModal()">ทำข้อสอบต่อ</button>
+            `;
+
+            // 3. สั่งแสดงผลหน้าจอ Modal เด้งขึ้นมาตรงกลางทันที
+            modal.style.display = 'flex';
+        };
+
+        // ฟังก์ชันสั่งปิดหน้าจอเตือนยกเลิกเพื่อทำข้อสอบต่อแบบเนียนๆ
+        window.closeCancelModal = () => {
+            document.getElementById('auth-modal').style.display = 'none';
+        };
+
+        checkAccessSecurity();
+    </script>
+</body>
+</html>

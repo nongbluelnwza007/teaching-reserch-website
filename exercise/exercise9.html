@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมแบบฝึกหัด หน่วยที่ 9 - KTCM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; font-family: 'Sarabun', sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #fff; }
+        .game-container { background: white; padding: 35px; border-radius: 25px; width: 850px; border: 4px solid #3b82f6; color: #0f172a; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .game-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 25px; }
+        
+        .evidence-folder { background: #fffbeb; border: 2px dashed #f59e0b; padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: inset 0 0 10px rgba(245,158,11,0.1); }
+        .suspect-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .suspect-btn { background: #f8fafc; border: 2px solid #cbd5e1; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: left; cursor: pointer; transition: 0.2s; color: #334155; }
+        .suspect-btn:hover { border-color: #f59e0b; background: #ffffec; }
+        .suspect-btn.locked-target { background: #f59e0b; color: white; border-color: #d97706; }
+
+        .game-btn { padding: 12px 28px; border: none; border-radius: 10px; font-weight: 700; font-size: 18px; font-family: inherit; cursor: pointer; transition: 0.3s; }
+        .btn-cancel-main { background: #64748b; color: white; }
+        .btn-submit-main { background: #10b981; color: white; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .modal-content { background: white; padding: 40px; border-radius: 30px; text-align: center; width: 340px; box-shadow: 0 20px 25px rgba(0,0,0,0.2); color: #0f172a; }
+        .modal-btn-group { display: flex; gap: 12px; margin-top: 25px; justify-content: center; width: 100%; }
+        .modal-btn-confirm { flex: 1; padding: 12px; background: #eab308; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; }
+        .modal-btn-cancel { flex: 1; padding: 12px; background: #64748b; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; }
+        .modal-btn-single { width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; }
+    
+                /* สำหรับหน้าจอมือถือที่มีความกว้างไม่เกิน 768px */
+        @media only screen and (max-width: 768px) {
+            .game-container {
+                width: 95% !important;
+                padding: 20px 15px !important;
+                margin: 10px auto !important;
+                box-sizing: border-box !important;
+            }
+            .card-grid, .drop-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+            .item-pool {
+                padding: 10px !important;
+                gap: 8px !important;
+            }
+            .drag-item {
+                font-size: 14px !important;
+                padding: 8px 12px !important;
+            }
+            .drop-zone {
+                min-height: 120px !important;
+                padding: 12px !important;
+            }
+            .drop-title {
+                font-size: 16px !important;
+            }
+            .memory-card {
+                height: 80px !important;
+                font-size: 13px !important;
+                padding: 5px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="game-header">
+            <h2 style="margin:0; font-size:24px;">🎮 เกมเปิดแฟ้มสืบสวน รวบตัวสายพันธุ์มัลแวร์ตัวร้าย (Malware Case)</h2>
+            <span style="font-weight:700; font-size:22px; color:#d97706;" id="caseTracker">คดีปริศนา: แฟ้มที่ 1/1</span>
+        </div>
+        
+        <div class="evidence-folder">
+            <h3 style="margin:0 0 8px 0; color:#b45309; font-size:18px;">📋 หลักฐานจากห้องปฏิบัติการความเสถียร:</h3>
+            <p id="evidenceText" style="margin:0; font-size:16px; font-weight:bold; color:#451a03; line-height:1.6;"></p>
+        </div>
+
+        <div class="suspect-grid" id="suspectContainer"></div>
+
+        <div style="display:flex; justify-content:space-between;">
+            <button class="game-btn btn-cancel-main" onclick="cancelGame()">ยกเลิกคดี</button>
+            <button id="submitGameBtn" class="game-btn btn-submit-main" onclick="verifyCase()" disabled>สรุปสำนวนคดีส่งฟ้อง</button>
+        </div>
+    </div>
+
+    <div id="game-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span id="modal-icon" style="font-size:70px; display:block; margin-bottom:15px;">❓</span>
+            <h2 id="modal-title" style="margin:0 0 10px 0; font-size:24px; font-weight:700;">แจ้งเตือน</h2>
+            <p id="modal-text" style="font-size:18px; color:#475569; margin-bottom:25px; line-height:1.6;"></p>
+            <div class="modal-btn-group" id="modalBtnGroup"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyANpBI1AVwKW6X2I9EPxmflU81RpumrXwo", authDomain: "teach-af247.firebaseapp.com", projectId: "teach-af247", storageBucket: "teach-af247.firebasestorage.app", messagingSenderId: "540555116590", appId: "1:540555116590:web:23e79da0c82e8c865edfbf" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const loginUser = localStorage.getItem('userName');
+
+        const currentUnit = 9;
+        let selectedSuspectIdx = null;
+
+        const caseData = {
+            evidence: "ตรวจพบรหัสโครงสร้างมัลแวร์ทำลายระบบรายหนึ่ง แอบลักลอบฝังตัวกบดานลึกระดับสิทธิ์สูงสุด ขี่ทับหน่วยความจำสแกน และเข้ายึดระบบชั้นลึกระดับแกน Kernel รวมไปถึงโครงสร้าง ROM BIOS/UEFI ส่งผลให้ระบบสแกนไวรัสปกติบน Windows มองไม่เห็นพฤติกรรม และแก้ยากเป็นอันดับหนึ่งของโลก ชิ้นส่วนพยานนี้คือสายพันธุ์ใด?",
+            suspects: ["🚨 ผู้ต้องสงสัย 1: สายพันธุ์หนอนเครือข่าย (Worms)", "🚨 ผู้ต้องสงสัย 2: สายพันธุ์ชุดเครื่องมือรูทคิต (Rootkits)", "🚨 ผู้ต้องสงสัย 3: สายพันธุ์คีย์ล็อกเกอร์ดักแป้นพิมพ์ (Keyloggers)", "🚨 ผู้ต้องสงสัย 4: สายพันธุ์สปายแวร์พ่วงบราวเซอร์ (Bloatware)"],
+            correctAnswerIdx: 1
+        };
+
+        function initCase() {
+            document.getElementById('evidenceText').innerText = caseData.evidence;
+            const container = document.getElementById('suspectContainer');
+            container.innerHTML = '';
+            
+            caseData.suspects.forEach((suspect, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'suspect-btn';
+                btn.innerText = suspect;
+                btn.onclick = function() {
+                    document.querySelectorAll('.suspect-btn').forEach(b => b.classList.remove('locked-target'));
+                    btn.classList.add('locked-target');
+                    selectedSuspectIdx = idx;
+                    document.getElementById('submitGameBtn').disabled = false;
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        async function verifyCase() {
+            let isCorrect = selectedSuspectIdx === caseData.correctAnswerIdx;
+            let finalPercent = isCorrect ? 100 : 0;
+
+            if(!isCorrect) {
+                showModal("❌", "จับกุมผู้ต้องหาผิดตัว!", "หลักฐานยืนยันว่ามัลแวร์แอบฝังตัวลึกระดับ BIOS/Kernel ไม่ใช่พฤติกรรมของสายพันธุ์ที่นายเลือก ! ทบทวนหลักฐานแล้วสืบหาคนร้ายตัวจริงใหม่!", null);
+                return;
+            }
+
+            try {
+                const userDocRef = db.collection("users").doc(loginUser);
+                const docSnap = await userDocRef.get();
+                let currentScores = docSnap.exists && docSnap.data().scores ? docSnap.data().scores : {};
+                if (!currentScores["unit" + currentUnit]) currentScores["unit" + currentUnit] = { pre: 0, exercise: 0, post: 0 };
+                currentScores["unit" + currentUnit].exercise = finalPercent;
+                await userDocRef.update({ scores: currentScores });
+
+                showModal("🎉", "ปิดคดีจับกุมสำเร็จ!", "รวบตัวสายพันธุ์ Rootkits ได้ถูกต้องตรงตามหลักฐาน ได้คะแนนแบบฝึกหัด: <b>100% เต็ม!</b>", () => {
+                    window.location.href = '../index.html';
+                }, true);
+            } catch(e) { window.location.href = '../index.html'; }
+        }
+
+        window.cancelGame = () => {
+            showModal("❓", "ต้องการยกเลิกคดีใช่ไหม?", "หากกดยืนยันออกจากเกม ความคืบหน้าของบทเรียนนี้จะไม่ถูกบันทึกนะ !", () => { window.location.href = '../index.html'; });
+        };
+
+        function showModal(icon, title, text, action, isSingleBtn = false) {
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerHTML = text;
+            const btnGroup = document.getElementById('modalBtnGroup');
+            if(isSingleBtn) {
+                btnGroup.innerHTML = `<button class="modal-btn-single">ตกลงกลับหน้าหลัก</button>`;
+                btnGroup.firstChild.onclick = action;
+            } else {
+                btnGroup.innerHTML = `
+                    <button class="modal-btn-confirm" id="modalConfirm">ยืนยัน</button>
+                    <button class="modal-btn-cancel" onclick="document.getElementById('game-modal').style.display='none'">ทำต่อ</button>
+                `;
+                if(action) document.getElementById('modalConfirm').onclick = action;
+            }
+            document.getElementById('game-modal').style.display = 'flex';
+        }
+
+        initCase();
+    </script>
+</body>
+</html>

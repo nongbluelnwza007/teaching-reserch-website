@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมแบบฝึกหัด หน่วยที่ 8 - KTCM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; font-family: 'Sarabun', sans-serif; background: #0b0f19; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #38bdf8; }
+        .game-container { background: #111827; padding: 35px; border-radius: 25px; width: 850px; border: 4px solid #0ea5e9; box-shadow: 0 0 30px rgba(14,165,233,0.3); }
+        .game-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1f2937; padding-bottom: 12px; margin-bottom: 25px; }
+        
+        .scenario-box { background: #1f2937; border-left: 5px solid #0ea5e9; padding: 20px; border-radius: 8px; color: #f3f4f6; font-size: 16px; font-weight: 700; line-height: 1.6; margin-bottom: 25px; }
+        
+        /* สไตล์หน้าต่าง Command Line */
+        .terminal-window { background: #030712; border: 2px solid #374151; border-radius: 15px; padding: 25px; font-family: monospace; font-size: 18px; color: #f97316; margin-bottom: 25px; box-shadow: inset 0 0 20px rgba(0,0,0,0.9); }
+        .cmd-line { display: flex; align-items: center; gap: 10px; color: #4ade80; margin-top: 15px; }
+        .cmd-input { flex: 1; background: transparent; border: none; color: #ffffff; font-family: monospace; font-size: 18px; font-weight: bold; outline: none; border-bottom: 2px solid #374151; padding-bottom: 4px; }
+        .cmd-input:focus { border-color: #4ade80; }
+
+        .game-btn { padding: 12px 28px; border: none; border-radius: 10px; font-weight: 700; font-size: 18px; font-family: inherit; cursor: pointer; transition: 0.3s; }
+        .btn-cancel-main { background: #4b5563; color: white; }
+        .btn-submit-main { background: #10b981; color: white; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .modal-content { background: white; padding: 40px; border-radius: 30px; text-align: center; width: 340px; box-shadow: 0 20px 25px rgba(0,0,0,0.2); color: #0f172a; }
+        .modal-btn-group { display: flex; gap: 12px; margin-top: 25px; justify-content: center; width: 100%; }
+        .modal-btn-confirm { flex: 1; padding: 12px; background: #eab308; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; cursor: pointer; }
+        .modal-btn-cancel { flex: 1; padding: 12px; background: #64748b; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; cursor: pointer; }
+        .modal-btn-single { width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 16px; cursor: pointer; }
+    
+                /* สำหรับหน้าจอมือถือที่มีความกว้างไม่เกิน 768px */
+        @media only screen and (max-width: 768px) {
+            .game-container {
+                width: 95% !important;
+                padding: 20px 15px !important;
+                margin: 10px auto !important;
+                box-sizing: border-box !important;
+            }
+            .card-grid, .drop-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+            .item-pool {
+                padding: 10px !important;
+                gap: 8px !important;
+            }
+            .drag-item {
+                font-size: 14px !important;
+                padding: 8px 12px !important;
+            }
+            .drop-zone {
+                min-height: 120px !important;
+                padding: 12px !important;
+            }
+            .drop-title {
+                font-size: 16px !important;
+            }
+            .memory-card {
+                height: 80px !important;
+                font-size: 13px !important;
+                padding: 5px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="game-header">
+            <h2 style="margin:0; font-size:24px; color:#f3f4f6;">⌨️ เกมพิมพ์คำสั่งกู้ชีพพาร์ทิชันและระบบดิสก์ (Command Typer)</h2>
+            <span style="font-weight:700; font-size:22px; color:#0ea5e9;" id="stageTrack">ภารกิจที่: 1/2</span>
+        </div>
+        
+        <div class="scenario-box">
+            <span style="color:#0ea5e9; display:block; margin-bottom:5px;">📋 เคสงานจากห้องแล็บ:</span>
+            <p id="scenarioText" style="margin:0;"></p>
+        </div>
+
+        <div class="terminal-window">
+            <div style="color: #9ca3af; font-size: 14px; margin-bottom: 10px;">Microsoft Windows [Version 10.0.22631]</div>
+            <div id="terminalHistory"></div>
+            <div class="cmd-line">
+                <span>X:\Sources></span>
+                <input type="text" class="cmd-input" id="cmdInput" placeholder="พิมพ์คำสั่งที่นี่แล้วกด Enter..." autocomplete="off">
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between;">
+            <button class="game-btn btn-cancel-main" onclick="cancelGame()">ยกเลิกภารกิจ</button>
+            <button id="submitGameBtn" class="game-btn btn-submit-main" onclick="executeCommand()">รันสคริปต์คำสั่ง (Enter)</button>
+        </div>
+    </div>
+
+    <div id="game-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span id="modal-icon" style="font-size:70px; display:block; margin-bottom:15px;">❓</span>
+            <h2 id="modal-title" style="margin:0 0 10px 0; font-size:24px; font-weight:700;">แจ้งเตือน</h2>
+            <p id="modal-text" style="font-size:18px; color:#475569; margin-bottom:25px; line-height:1.6;"></p>
+            <div class="modal-btn-group" id="modalBtnGroup"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyANpBI1AVwKW6X2I9EPxmflU81RpumrXwo", authDomain: "teach-af247.firebaseapp.com", projectId: "teach-af247", storageBucket: "teach-af247.firebasestorage.app", messagingSenderId: "540555116590", appId: "1:540555116590:web:23e79da0c82e8c865edfbf" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const loginUser = localStorage.getItem('userName');
+
+        const currentUnit = 8;
+        let activeStage = 0;
+        let gameScore = 0;
+
+        const stageCases = [
+            {
+                text: "ต้องการใช้เครื่องมือ Diskpart เพื่อทำความสะอาด กวาดล้างข้อมูลและโครงสร้างผังพาร์ทิชันทั้งหมดออกจากฮาร์ดดิสก์ของลูกค้าอย่างสิ้นซาก จงพิมพ์คำสั่งระดับล่างตัวนั้นให้ถูกต้องเป๊ะๆ (ตัวพิมพ์เล็กทั้งหมด)",
+                correctCmd: "clean",
+                successLog: "SUCCESS: Diskpart succeeded in cleaning the disk."
+            },
+            {
+                text: "หลังจากโคลนดิสก์เสร็จแล้วเครื่องบูตไม่ติด ช่างคอมพิวเตอร์เข้าสู่ Windows RE เพื่อสั่ง 'ซ่อมแซมและสร้างสารบบไฟล์นำทางระบบบูต (BCD) ขึ้นมาใหม่' ต้องใช้ชุดคำสั่งเว้นวรรคแบบใด พิมพ์ให้ถูกต้อง?",
+                correctCmd: "bootrec /rebuildbcd",
+                successLog: "SUCCESS: Scanning disks for Windows installations... Successfully rebuilt!"
+            }
+        ];
+
+        function loadStage() {
+            document.getElementById('stageTrack').innerText = `ภารกิจที่: ${activeStage + 1}/2`;
+            document.getElementById('scenarioText').innerText = stageCases[activeStage].text;
+            document.getElementById('cmdInput').value = '';
+            document.getElementById('cmdInput').focus();
+        }
+
+        function executeCommand() {
+            const inputEl = document.getElementById('cmdInput');
+            const userCmd = inputEl.value.trim().toLowerCase();
+            const currentCase = stageCases[activeStage];
+            const historyEl = document.getElementById('terminalHistory');
+
+            if (!userCmd) return;
+
+            // วาดประวัติคำสั่งลงจอ
+            historyEl.innerHTML += `<div style="color: #ffffff;">X:\\Sources> ${inputEl.value}</div>`;
+
+            if (userCmd === currentCase.correctCmd) {
+                gameScore += 50;
+                historyEl.innerHTML += `<div style="color: #4ade80; margin-bottom:10px;">${currentCase.successLog}</div>`;
+                
+                setTimeout(async () => {
+                    if (activeStage < 1) {
+                        activeStage++;
+                        loadStage();
+                    } else {
+                        await saveScore();
+                    }
+                }, 1000);
+            } else {
+                historyEl.innerHTML += `<div style="color: #ef4444; margin-bottom:10px;">ERROR: '${inputEl.value}' is not recognized as an internal or external command. พิมพ์ผิด ! ทบทวนดูใหม่!</div>`;
+                inputEl.value = '';
+            }
+        }
+
+        // ดัก Event กดปุ่ม Enter ใน Input
+        document.getElementById('cmdInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                executeCommand();
+            }
+        });
+
+        async function saveScore() {
+            const finalPercent = Math.round(gameScore);
+            try {
+                const userDocRef = db.collection("users").doc(loginUser);
+                const docSnap = await userDocRef.get();
+                let currentScores = docSnap.exists && docSnap.data().scores ? docSnap.data().scores : {};
+                if (!currentScores["unit" + currentUnit]) currentScores["unit" + currentUnit] = { pre: 0, exercise: 0, post: 0 };
+                currentScores["unit" + currentUnit].exercise = finalPercent;
+                await userDocRef.update({ scores: currentScores });
+
+                showModal("🎉", "วิศวกรรมเทอร์มินัลสำเร็จ!", `สั่งการชุดสคริปต์กู้ชีพพาร์ทิชันดิสก์เรียบร้อย ได้คะแนน: <b>${finalPercent}%</b>`, () => {
+                    window.location.href = '../index.html';
+                }, true);
+            } catch(e) { window.location.href = '../index.html'; }
+        }
+
+        window.cancelGame = () => {
+            showModal("❓", "ต้องการยกเลิกภารกิจใช่ไหม ?", "หากกดยืนยันปิดเทอร์มินัล แต้มความสมบูรณ์ของบทเรียนนี้จะไม่ถูกบันทึกนะ !", () => { window.location.href = '../index.html'; });
+        };
+
+        function showModal(icon, title, text, action, isSingleBtn = false) {
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerHTML = text;
+            const btnGroup = document.getElementById('modalBtnGroup');
+            if(isSingleBtn) {
+                btnGroup.innerHTML = `<button class="modal-btn-single">ตกลงกลับหน้าหลัก</button>`;
+                btnGroup.firstChild.onclick = action;
+            } else {
+                btnGroup.innerHTML = `
+                    <button class="modal-btn-confirm" id="modalConfirm">ยืนยันปิด</button>
+                    <button class="modal-btn-cancel" onclick="document.getElementById('game-modal').style.display='none'">พิมพ์ต่อ</button>
+                `;
+                if(action) document.getElementById('modalConfirm').onclick = action;
+            }
+            document.getElementById('game-modal').style.display = 'flex';
+        }
+
+        loadStage();
+    </script>
+</body>
+</html>

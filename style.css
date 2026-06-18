@@ -1,0 +1,869 @@
+/*
+ * KTCM Computer Maintenance - Futuristic Space-Tech Stylesheet
+ * Version: 3.0.0 (Space-Tech Dark Theme)
+ * Author: Antigravity AI
+ */
+
+/* ==========================================================================
+   1. RESET & INITIAL SETTINGS
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;700&display=swap');
+
+:root {
+    --primary: #0b0f19;         /* Deep obsidian dark */
+    --secondary: #131b2e;       /* Slate dark */
+    --accent: #6366f1;          /* Bright indigo */
+    --accent-glow: rgba(99, 102, 241, 0.35);
+    --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    --bg: #070913;              /* Background space deep */
+    --card: rgba(19, 27, 46, 0.7); /* Translucent glass navy */
+    --text: #f1f5f9;            /* Soft white text */
+    --text-soft: #94a3b8;       /* Muted grey */
+    --border: rgba(255, 255, 255, 0.08); /* Thin glass border */
+    --danger: #f43f5e;          /* Neon rose */
+    --success: #10b981;         /* Neon green */
+    --white: #ffffff;
+    --black: #000000;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    font-family: 'Outfit', 'Sarabun', sans-serif;
+    background-color: var(--bg);
+    background-image: radial-gradient(rgba(99, 102, 241, 0.15) 1px, transparent 1px);
+    background-size: 24px 24px;
+    overflow: hidden;
+    color: var(--text);
+    line-height: 1.6;
+    transition: background-color 0.5s ease;
+}
+
+/* Profile Cover Banner Styles */
+.user-profile-cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: #1e293b;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.user-profile-cover.bg-default {
+    background: #070913; 
+    background-image: radial-gradient(rgba(99, 102, 241, 0.15) 1px, transparent 1px);
+    background-size: 16px 16px;
+}
+.user-profile-cover.bg-void {
+    background: #020205;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+.user-profile-cover.bg-nebula {
+    background: #0a0518;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.18) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+}
+.user-profile-cover.bg-aurora {
+    background: #03080e;
+    background-image: 
+        radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.15) 0px, transparent 50%);
+}
+.user-profile-cover.bg-custom {
+    background-color: #070913;
+}
+
+/* ==========================================================================
+   2. LAYOUT STRUCTURE
+   ========================================================================== */
+.app-container {
+    display: flex;
+    flex-direction: row;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   3. SIDEBAR (NAVIGATION)
+   ========================================================================== */
+#sidebar {
+    width: 290px;
+    min-width: 290px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    color: var(--white);
+    z-index: 1000;
+    transition: all 0.3s ease-in-out;
+}
+
+.sidebar-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.course-title {
+    font-size: 1.5rem;
+    line-height: 1.3;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #a5b4fc 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+}
+
+/* ==========================================================================
+   4. QUICK LINKS & SCROLLABLE MENU
+   ========================================================================== */
+.nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+    padding: 0 24px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+.nav-links a:hover {
+    background-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+    transform: translateY(-1px);
+}
+
+.menu-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    scrollbar-width: thin;
+}
+
+.menu-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.menu-scroll::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.2);
+    border-radius: 10px;
+}
+
+.menu-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.4);
+}
+
+/* ==========================================================================
+   5. MENU GROUP & SUB-MENU
+   ========================================================================== */
+.menu-group {
+    margin-bottom: 8px;
+}
+
+.main-link {
+    padding: 12px 16px;
+    border-radius: 12px;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: 1px solid transparent;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-link:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.04);
+    color: var(--white);
+}
+
+.sub-menu {
+    list-style: none;
+    display: none;
+    margin-top: 4px;
+    padding-left: 0;
+    transition: all 0.3s ease;
+}
+
+.menu-group.active .sub-menu {
+    display: block !important;
+}
+
+.sub-item {
+    padding: 10px 14px 10px 24px;
+    color: var(--text-soft);
+    border-radius: 10px;
+    margin: 4px 0;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.sub-item:hover {
+    background-color: rgba(99, 102, 241, 0.12);
+    color: var(--white);
+    transform: translateX(4px);
+}
+
+.sub-item.active-menu {
+    background: var(--accent-gradient);
+    color: var(--white);
+    font-weight: 600;
+    box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+/* ==========================================================================
+   6. USER PROFILE SECTION
+   ========================================================================== */
+.user-profile {
+    position: relative;
+    padding: 60px 18px 22px 18px; /* Shift content down to fit cover photo */
+    border-top: 1px solid rgba(99, 102, 241, 0.2);
+    background: linear-gradient(180deg, rgba(19, 27, 46, 0.45) 0%, rgba(11, 15, 25, 0.85) 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    border-radius: 20px 20px 0 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 -10px 20px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    overflow: hidden; /* Prevent cover photo overflow */
+}
+
+.user-avatar {
+    position: relative;
+    z-index: 2; /* Sit on top of cover photo */
+    margin-top: -15px; /* Overlap cover photo */
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    border: 2px solid transparent;
+    background-image: linear-gradient(#131b2e, #131b2e) padding-box, var(--accent-gradient) border-box;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.35);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-avatar:hover {
+    transform: scale(1.04) rotate(4deg);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.45);
+}
+
+.user-info {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.user-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--white);
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.user-role {
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    user-select: none;
+}
+
+.user-role.admin {
+    background: rgba(234, 179, 8, 0.15);
+    border: 1px solid rgba(234, 179, 8, 0.35);
+    color: #fef08a;
+}
+
+.user-role.student {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    color: #c7d2fe;
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.profile-link-nav, .logout-btn {
+    width: 100%;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-link-nav {
+    background: var(--accent-gradient);
+    color: var(--white);
+    box-shadow: 0 4px 10px var(--accent-glow);
+    border: none;
+}
+
+.profile-link-nav:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.45);
+    filter: brightness(1.1);
+}
+
+.logout-btn {
+    background: rgba(244, 63, 94, 0.08);
+    border: 1px solid rgba(244, 63, 94, 0.4);
+    color: #fda4af;
+}
+
+.logout-btn:hover {
+    background: var(--danger);
+    color: var(--white);
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   7. MAIN CONTENT AREA
+   ========================================================================== */
+#main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background-color: var(--bg);
+}
+
+.content-inner {
+    margin: 24px;
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 40px;
+    flex: 1;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.content-inner::-webkit-scrollbar {
+    width: 8px;
+}
+
+.content-inner::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.content-inner::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.content-inner h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 24px;
+    border-left: 5px solid var(--accent);
+    padding-left: 15px;
+}
+
+.content-inner h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #a5b4fc;
+    margin-top: 35px;
+    margin-bottom: 15px;
+}
+
+.content-inner p {
+    color: #cbd5e1;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    margin-bottom: 16px;
+}
+
+.content-inner ul, .content-inner ol {
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+.content-inner li {
+    color: #cbd5e1;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    margin-bottom: 10px;
+}
+
+.content-inner strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* Custom highlight box for styling slide items */
+.highlight-box {
+    background: rgba(99, 102, 241, 0.06);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+/* ==========================================================================
+   8. FLOATING NAVIGATION (DESKTOP)
+   ========================================================================== */
+.floating-nav {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+.float-btn {
+    text-decoration: none;
+    color: var(--white);
+    background: var(--accent-gradient);
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px var(--accent-glow);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.float-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    filter: brightness(1.1);
+}
+
+/* ==========================================================================
+   9. FOOTER NAVIGATION
+   ========================================================================== */
+.footer-nav {
+    height: 90px;
+    background-color: var(--secondary);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+}
+
+.nav-btn {
+    border: none;
+    background: var(--accent-gradient);
+    color: var(--white);
+    min-width: 140px;
+    padding: 12px 24px;
+    border-radius: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--accent-glow);
+    transition: all 0.25s ease;
+}
+
+.nav-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    filter: brightness(1.1);
+}
+
+.nav-btn:active {
+    transform: scale(0.97);
+}
+
+#pageCounter {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #a5b4fc;
+    border: 1px solid var(--border);
+    padding: 8px 24px;
+    border-radius: 12px;
+    background: rgba(11, 15, 25, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+/* ==========================================================================
+   10. MOBILE RESPONSIVE
+   ========================================================================== */
+.mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 10001;
+    background: var(--accent-gradient);
+    color: var(--white);
+    padding: 12px 18px;
+    border-radius: 12px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 12px var(--accent-glow);
+    transition: all 0.2s ease;
+}
+
+.mobile-menu-btn:hover {
+    transform: scale(1.05);
+}
+
+.menu-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    z-index: 9998;
+}
+
+.menu-backdrop.show {
+    display: block;
+}
+
+@media screen and (max-width: 768px) {
+    .mobile-menu-btn { display: block !important; }
+
+    body { font-size: 16px !important; }
+    .content-inner { margin: 12px !important; padding: 65px 20px 20px 20px !important; line-height: 1.7 !important; }
+
+    #sidebar {
+        position: fixed !important;
+        left: -100% !important;
+        top: 0 !important;
+        width: 280px !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        z-index: 10000 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        background: var(--primary) !important;
+    }
+
+    #sidebar.show { left: 0 !important; }
+
+    /* Footer buttons stack */
+    .footer-nav {
+        flex-direction: column !important;
+        height: auto !important;
+        padding: 15px !important;
+        gap: 12px !important;
+    }
+    .nav-btn { width: 100% !important; }
+    #pageCounter { width: 100% !important; text-align: center !important; order: -1 !important; }
+
+    .floating-nav {
+        position: relative !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+        padding: 15px !important;
+        top: 0 !important;
+        right: 0 !important;
+    }
+
+    /* --- ส่วนแก้โปรไฟล์: ปุ่มเท่ากันและฟอนต์เหมือนกันเป๊ะ --- */
+    .user-profile {
+        margin-top: auto !important;
+    }
+}
+
+/* ==========================================================================
+   11. EXTENDED UTILITIES & ANIMATIONS
+   ========================================================================== */
+@keyframes slideUpFade {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.content-inner {
+    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.user-avatar:hover {
+    transform: rotate(5deg) scale(1.05);
+    border-color: #a855f7;
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+}
+
+.user-name {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.spacer-10 { height: 10px; }
+.spacer-20 { height: 20px; }
+.spacer-30 { height: 30px; }
+
+/* ==========================================================================
+   12. COURSE CONTENT DARK-THEME CALLOUTS, CARDS & TABLES
+   ========================================================================== */
+.content-inner .detailed-card {
+    background: rgba(30, 41, 59, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.content-inner .detailed-card:hover {
+    border-color: rgba(99, 102, 241, 0.35);
+    background: rgba(30, 41, 59, 0.45);
+    transform: translateY(-2px);
+}
+
+.content-inner .detailed-card h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.content-inner .callout-box {
+    background: rgba(30, 41, 59, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.content-inner .callout-box h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.content-inner .box-info {
+    border-left: 4px solid #38bdf8;
+    background: rgba(56, 189, 248, 0.06);
+}
+.content-inner .box-info h3, .content-inner .box-info strong {
+    color: #38bdf8 !important;
+}
+
+.content-inner .box-success {
+    border-left: 4px solid #10b981;
+    background: rgba(16, 185, 129, 0.06);
+}
+.content-inner .box-success h3, .content-inner .box-success strong {
+    color: #10b981 !important;
+}
+
+.content-inner .box-warning {
+    border-left: 4px solid #f59e0b;
+    background: rgba(245, 158, 11, 0.06);
+}
+.content-inner .box-warning h3, .content-inner .box-warning strong {
+    color: #f59e0b !important;
+}
+
+.content-inner .box-danger {
+    border-left: 4px solid #f43f5e;
+    background: rgba(244, 63, 94, 0.06);
+}
+.content-inner .box-danger h3, .content-inner .box-danger strong {
+    color: #f43f5e !important;
+}
+
+.content-inner .grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 24px 0;
+}
+
+@media screen and (max-width: 768px) {
+    .content-inner .grid-2col {
+        grid-template-columns: 1fr;
+    }
+}
+
+.content-inner table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 24px 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(30, 41, 59, 0.15);
+}
+
+.content-inner th {
+    background: rgba(99, 102, 241, 0.25) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    -webkit-text-fill-color: initial !important; /* Override standard transparent text-fill-color if any */
+}
+
+.content-inner td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    font-size: 0.95rem;
+}
+
+.content-inner tr:last-child td {
+    border-bottom: none;
+}
+
+.content-inner tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.content-inner .code-block {
+    background: rgba(7, 9, 19, 0.85);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: #e2e8f0;
+    margin: 14px 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+}
+
+.content-inner h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-top: 24px;
+    margin-bottom: 12px;
+}
+
+/* ─── Callout Box Components ─── */
+.content-inner .callout-box {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+}
+
+.content-inner .callout-box h3 {
+    margin-top: 0;
+    color: #c4b5fd;
+}
+
+.content-inner .callout-box.box-danger {
+    background: rgba(239, 68, 68, 0.08);
+    border-left: 4px solid #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+    border-left-color: #ef4444;
+}
+
+.content-inner .callout-box.box-danger h3 {
+    color: #fca5a5;
+}
+
+.content-inner .callout-box.box-success {
+    background: rgba(22, 163, 74, 0.08);
+    border-left: 4px solid #22c55e;
+    border-color: rgba(22, 163, 74, 0.3);
+    border-left-color: #22c55e;
+}
+
+.content-inner .callout-box.box-success h3 {
+    color: #86efac;
+}
+
+.content-inner .callout-box.box-warning {
+    background: rgba(234, 88, 12, 0.08);
+    border-left: 4px solid #f97316;
+    border-color: rgba(234, 88, 12, 0.3);
+    border-left-color: #f97316;
+}
+
+.content-inner .callout-box.box-warning h3 {
+    color: #fdba74;
+}
+
+.content-inner .callout-box.box-info {
+    background: rgba(99, 102, 241, 0.08);
+    border-left: 4px solid #818cf8;
+    border-color: rgba(99, 102, 241, 0.3);
+    border-left-color: #818cf8;
+}
+
+.content-inner .callout-box.box-info h3 {
+    color: #a5b4fc;
+}
+

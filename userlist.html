@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>กำลังเตรียมโครงสร้างข้อมูล... ดูใน Console นะไอ้สอง!</h1>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyANpBI1AVwKW6X2I9EPxmflU81RpumrXwo",
+            authDomain: "teach-af247.firebaseapp.com",
+            projectId: "teach-af247",
+            storageBucket: "teach-af247.firebasestorage.app",
+            messagingSenderId: "540555116590",
+            appId: "1:540555116590:web:23e79da0c82e8c865edfbf",
+            measurementId: "G-52HK2DB5XS"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ฟังก์ชันสร้างโครงสร้างคะแนน 10 บท
+        function generateEmptyScores() {
+            let scores = {};
+            for (let i = 1; i <= 10; i++) {
+                scores[`unit${i}`] = { pre: 0, post: 0, exercise: 0 };
+            }
+            return scores;
+        }
+
+        const userDatabase = [
+            { username: "66310100001", password: "aB9dE2fH", firstName: "นางสาวภัสสร", lastName: "ยุนุช" },
+            { username: "66310100002", password: "kL3mN7pQ", firstName: "นางสาวปุรัสกร", lastName: "แสงอินทร์" },
+            { username: "66310100003", password: "rS1tU5vW", firstName: "นางสาววิลาสินี", lastName: "เชียงแรง" },
+            { username: "66310100004", password: "xY8zA4bC", firstName: "นางสาวกุลดา", lastName: "บินยาขัน" },
+            { username: "66310100005", password: "dE6fG2hI", firstName: "นายสุรดิษ", lastName: "เชื้อเมืองพาน" },
+            { username: "66310100006", password: "jK9lM3nO", firstName: "นายคมิก", lastName: "น้อยจันทร์" },
+            { username: "66310100007", password: "pQ5rS1tU", firstName: "นางสาวอภิญญา", lastName: "เปียสุข" },
+            { username: "66310100008", password: "vW7xY9zB", firstName: "นายเจษฎา", lastName: "ดีโยทา" },
+            { username: "66310100009", password: "cD4eF8gH", firstName: "นางสาวมนัสนันท์", lastName: "สนธิ" },
+            { username: "66310100010", password: "iJ2kL6mN", firstName: "นายจรณินทร์", lastName: "พงษ์พิทักษ์" },
+            { username: "66310100011", password: "oP3qR7sT", firstName: "นางสาวพิชญธิดา", lastName: "แสนพล" },
+            { username: "66310100012", password: "uV5wX9yZ", firstName: "นายชยพล", lastName: "ทองคำ" },
+            { username: "66310100013", password: "aB1cD5eF", firstName: "นายภูมิพัฒน์", lastName: "กรอบแป้น" },
+            { username: "66310100014", password: "gH3iJ7kL", firstName: "นายปฐมพงษ์", lastName: "เครือเอียด" },
+            { username: "66310100015", password: "mN9oP3qR", firstName: "นางสาวอารยา", lastName: "ตีชะเกตุ" },
+            { username: "66310100016", password: "sT5uV1wX", firstName: "นางสาวสุพัตรา", lastName: "พงศ์สุภากร" },
+            { username: "66310100017", password: "yZ7aB3cD", firstName: "นางสาวอภิญา", lastName: "เอี่ยมละออ" },
+            { username: "66310100018", password: "eF9gH5iJ", firstName: "นางสาวปารมี", lastName: "กุมพล" },
+            { username: "66310100019", password: "kL1mN7oP", firstName: "นายปิติศักดิ์", lastName: "ทุมแสน" },
+            { username: "66310100020", password: "qR3sT9uV", firstName: "นางสาวปาริชาติ", lastName: "ชัยสูงเนิน" },
+            { username: "blue", password: "3990544623181", firstName: "blue", lastName: "blue" }
+        ];
+
+        async function runUpload() {
+            for (const student of userDatabase) {
+                try {
+                    await setDoc(doc(db, "users", student.username), {
+                        ...student,
+                        nickName: "",
+                        profilePic: "",
+                        scores: generateEmptyScores() // ตรงนี้แหละไอ้สอง! ยิงโครงสร้างเข้าไปเลย
+                    });
+                    console.log("อัปโหลดสำเร็จ:", student.username);
+                } catch (e) {
+                    console.error("พังที่:", student.username, e);
+                }
+            }
+            alert("เยส! อัปโหลดโครงสร้างข้อมูลครบทุกคนแล้วไอ้สอง!");
+        }
+
+        runUpload();
+    </script>
+</body>
+</html>
