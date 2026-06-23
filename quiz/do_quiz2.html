@@ -115,7 +115,8 @@
         if (!loginUser) { window.location.href = '../login.html'; }
 
         const currentUnit = 2; 
-        const selectedType = localStorage.getItem('activeQuizType') || 'pre';
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedType = urlParams.get('type') || localStorage.getItem('activeQuizType') || 'pre';
         const typeLabel = selectedType === 'pre' ? 'ก่อนเรียน' : 'หลังเรียน';
 
         const quizQuestions = [

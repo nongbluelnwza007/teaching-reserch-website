@@ -7,9 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
     <script>
         // 1. ตรวจสอบสถานะล็อกอินปัจจุบันในระบบ
-        if (!sessionStorage.getItem('isLoggedIn') || !localStorage.getItem('userName')) {
-            sessionStorage.clear();
-            localStorage.removeItem('userName');
+        if (!localStorage.getItem('userName')) {
             window.location.replace('login.html'); // เตะกลับหน้าแรกและล้างประวัติการเข้าชมทันที
         }
 
@@ -383,7 +381,7 @@
     const unitData = cachedScores["unit" + selectedUnitNum];
     console.log("ข้อมูลคะแนนปัจจุบันในฐานข้อมูลสำหรับบทนี้คือ:", unitData);
 
-    const targetUrl = "./quiz/do_quiz" + selectedUnitNum + ".html";
+    const targetUrl = "./quiz/do_quiz" + selectedUnitNum + ".html?type=" + type;
 
     // 📖 ====== เคสที่ 1: ดักจับและคัดกรองฝั่ง "ก่อนเรียน" (Pre-Test) ======
     if (type === 'pre') {
@@ -401,9 +399,11 @@
         // 🟢 ผ่านสิทธิ์: ยังไม่เคยทำมาก่อน เด้ง Modal เขียวต้อนรับสวยๆ ตามฟลูเดิมของมึง
         if (typeof openQuizModal === 'function') {
             openQuizModal(true, "เริ่มทำข้อสอบได้!", "ระบบเตรียมข้อสอบก่อนเรียน หน่วยที่ " + selectedUnitNum + " เรียบร้อยแล้ว ขอให้ทำให้อย่างเต็มที่!", () => {
+                localStorage.setItem('activeQuizType', 'pre');
                 window.location.href = targetUrl;
             });
         } else {
+            localStorage.setItem('activeQuizType', 'pre');
             window.location.href = targetUrl;
         }
         return;
@@ -435,6 +435,7 @@
 
         // 🔓 ผ่านสิทธิ์: เคยทำก่อนเรียนแล้ว และยังไม่เคยทำหลังเรียน ปล่อยวาร์ปไปหน้ากรอบเขียวทันที
         console.log("🔓 ผ่านเงื่อนไข! คะแนน Pre มากกว่า 0 และยังไม่เคยทำ Post 🚀 กำลังพาวาร์ป...");
+        localStorage.setItem('activeQuizType', 'post');
         window.location.href = targetUrl;
     }
 }

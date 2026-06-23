@@ -8,9 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
     <script>
         // 1. ตรวจสอบสถานะล็อกอินปัจจุบันในระบบ
-        if (!sessionStorage.getItem('isLoggedIn') || !localStorage.getItem('userName')) {
-            sessionStorage.clear();
-            localStorage.removeItem('userName');
+        if (!localStorage.getItem('userName')) {
             window.location.replace('login.html'); // เตะกลับหน้าแรกและล้างประวัติการเข้าชมทันที
         }
 

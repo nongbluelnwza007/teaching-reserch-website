@@ -7,9 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <script>
         // 1. ตรวจสอบสถานะล็อกอินปัจจุบันในระบบ
-        if (!sessionStorage.getItem('isLoggedIn') || !localStorage.getItem('userName')) {
-            sessionStorage.clear();
-            localStorage.removeItem('userName');
+        if (!localStorage.getItem('userName')) {
             window.location.replace('login.html'); // เตะกลับหน้าแรกและล้างประวัติการเข้าชมทันที
         }
 
@@ -21,7 +19,7 @@
         });
     </script>
     <script>
-        if (!sessionStorage.getItem('isLoggedIn')) { window.location.href = 'login.html'; }
+        if (!localStorage.getItem('userName')) { window.location.href = 'login.html'; }
     </script>
 
 

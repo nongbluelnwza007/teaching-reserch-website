@@ -7,9 +7,7 @@
     <link rel="stylesheet" href="profile.css">
     <script>
         // 1. ตรวจสอบสถานะล็อกอินปัจจุบันในระบบ
-        if (!sessionStorage.getItem('isLoggedIn') || !localStorage.getItem('userName')) {
-            sessionStorage.clear();
-            localStorage.removeItem('userName');
+        if (!localStorage.getItem('userName')) {
             window.location.replace('login.html'); // เตะกลับหน้าแรกและล้างประวัติการเข้าชมทันที
         }
 
@@ -55,11 +53,13 @@
                 </div>
                 <input type="file" id="fileInput" accept="image/*" style="display:none;">
                 
-                <div class="input-group">
-                    <span class="input-icon">👤</span>
-                    <input type="text" id="nickName" placeholder="ชื่อเล่น">
-                </div>
-                <button class="btn-save" onclick="saveProfile()">บันทึกโปรไฟล์</button>
+                <form onsubmit="event.preventDefault(); saveProfile();" style="width: 100%;">
+                    <div class="input-group">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="nickName" placeholder="ชื่อเล่น">
+                    </div>
+                    <button type="submit" class="btn-save">บันทึกโปรไฟล์</button>
+                </form>
             </div>
         </div>
         
@@ -89,15 +89,17 @@
         <!-- Change Password Section -->
         <div class="section-group">
             <h2>เปลี่ยนรหัสผ่าน</h2>
-            <div class="input-group">
-                <span class="input-icon">🔒</span>
-                <input type="password" id="oldPass" placeholder="รหัสผ่านเดิม">
-            </div>
-            <div class="input-group">
-                <span class="input-icon">🔑</span>
-                <input type="password" id="newPass" placeholder="รหัสผ่านใหม่">
-            </div>
-            <button class="btn-save" onclick="changePassword()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);">เปลี่ยนรหัสผ่าน</button>
+            <form onsubmit="event.preventDefault(); changePassword();" style="width: 100%;">
+                <div class="input-group">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="oldPass" placeholder="รหัสผ่านเดิม">
+                </div>
+                <div class="input-group">
+                    <span class="input-icon">🔑</span>
+                    <input type="password" id="newPass" placeholder="รหัสผ่านใหม่">
+                </div>
+                <button type="submit" class="btn-save" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);">เปลี่ยนรหัสผ่าน</button>
+            </form>
         </div>
         
         <!-- Back Button -->

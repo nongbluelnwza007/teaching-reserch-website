@@ -115,7 +115,8 @@
         if (!loginUser) { window.location.href = '../login.html'; }
 
         const currentUnit = 7; 
-        const selectedType = localStorage.getItem('activeQuizType') || 'pre';
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedType = urlParams.get('type') || localStorage.getItem('activeQuizType') || 'pre';
         const typeLabel = selectedType === 'pre' ? 'ก่อนเรียน' : 'หลังเรียน';
 
         // ชุดคำถาม 10 ข้อ เจาะลึกการติดตั้งและจัดการซอฟต์แวร์/ไดรเวอร์ (หน่วยที่ 7)

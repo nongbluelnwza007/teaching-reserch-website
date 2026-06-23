@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>กำลังอัปเดตคะแนนบทที่ 1 ให้ทุกคนเป็น 10... ดูใน Console นะไอ้สอง!</h1>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyANpBI1AVwKW6X2I9EPxmflU81RpumrXwo",
+            authDomain: "teach-af247.firebaseapp.com",
+            projectId: "teach-af247",
+            storageBucket: "teach-af247.firebasestorage.app",
+            messagingSenderId: "540555116590",
+            appId: "1:540555116590:web:23e79da0c82e8c865edfbf",
+            measurementId: "G-52HK2DB5XS"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function updateUnit1Scores() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "users"));
+                let count = 0;
+                
+                const updatePromises = querySnapshot.docs.map(async (userDoc) => {
+                    const userData = userDoc.data();
+                    
+                    // อัปเดตเฉพาะคะแนนบท 1 ให้เต็ม 10
+                    if (userData.scores) {
+                        userData.scores.unit1.pre = 10;
+                        userData.scores.unit1.post = 10;
+                        
+                        await updateDoc(doc(db, "users", userDoc.id), {
+                            scores: userData.scores
+                        });
+                        console.log(`อัปเดตคะแนนให้ ${userDoc.id} สำเร็จ!`);
+                        count++;
+                    }
+                });
+
+                await Promise.all(updatePromises);
+                
+                alert(`เยส! แก้ไขคะแนนก่อนเรียนและหลังเรียนบทที่ 1 ให้เต็ม 10 สำเร็จทั้งหมด ${count} คนแล้วไอ้สอง!`);
+            } catch (e) {
+                console.error("เกิดข้อผิดพลาดในการอัปเดต:", e);
+                alert("มีบางอย่างผิดพลาด ดูใน Console นะ");
+            }
+        }
+
+        updateUnit1Scores();
+    </script>
+</body>
+</html>
